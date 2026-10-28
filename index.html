@@ -243,6 +243,18 @@ const parseYmd=s=>{const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,
 const addDays=(s,n)=>{const d=parseYmd(s);d.setDate(d.getDate()+n);return ymd(d);};
 const wdOf=s=>{const g=parseYmd(s).getDay();return g===0?7:g;};
 const fmtDate=s=>{if(!s)return '—';const p=s.split('-');return p[2]+'.'+p[1]+'.'+p[0];};
+const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+function fmtRange(a,b){
+  if(!a)return '—';
+  const x=a.split('-');
+  const one=(+x[2])+' '+MON[+x[1]-1]+' '+x[0];
+  if(!b||b<=a)return one;
+  const y=b.split('-');
+  if(x[0]!==y[0])return one+' – '+(+y[2])+' '+MON[+y[1]-1]+' '+y[0];
+  if(x[1]!==y[1])return (+x[2])+' '+MON[+x[1]-1]+' – '+(+y[2])+' '+MON[+y[1]-1]+' '+y[0];
+  return (+x[2])+'–'+(+y[2])+' '+MON[+y[1]-1]+' '+y[0];
+}
+function daysBetween(a,b){if(!b||b<=a)return 1;return Math.round((parseYmd(b)-parseYmd(a))/86400000)+1;}
 const fmtShort=s=>{const p=s.split('-');return p[2]+'.'+p[1];};
 const plural=(n,f)=>{const a=Math.abs(n)%100,b=a%10;if(a>10&&a<20)return f[2];if(b>1&&b<5)return f[1];if(b===1)return f[0];return f[2];};
 function parseTime(str){
@@ -755,14 +767,14 @@ function viewMeets(){
   const list=S.meets.slice().sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:0);
   let h='<div class="toolbar"><h2 class="sec-title grow">Соревнования</h2><button class="btn primary" type="button" data-act="meet-new">Новое</button></div>';
   if(!list.length)return h+'<div class="panel empty"><h3>Пока ничего нет</h3><p>Создайте соревнование, добавьте спортсменов и отметьте дистанции. Заявочное время подставится из лучших результатов.</p><div class="row-actions"><button class="btn primary" type="button" data-act="meet-new">Создать соревнование</button></div></div>';
-  h+='<div class="panel list">'+list.map(m=>{const st=meetStats(m);return '<button class="item" type="button" data-act="meet-open" data-id="'+m.id+'"><span class="grow"><span class="name">'+esc(m.name)+'</span><span class="sub">'+fmtDate(m.date)+(m.place?' · '+esc(m.place):'')+' · бассейн '+m.pool+' м</span></span><span class="pill">'+st.n+' / '+st.st+'</span></button>';}).join('')+'</div><p class="note">В метке: спортсменов / стартов.</p>';
+  h+='<div class="panel list">'+list.map(m=>{const st=meetStats(m);return '<button class="item" type="button" data-act="meet-open" data-id="'+m.id+'"><span class="grow"><span class="name">'+esc(m.name)+'</span><span class="sub">'+fmtRange(m.date,m.dateEnd)+(m.place?' · '+esc(m.place):'')+' · бассейн '+m.pool+' м</span></span><span class="pill">'+st.n+' / '+st.st+'</span></button>';}).join('')+'</div><p class="note">В метке: спортсменов / стартов.</p>';
   return h;
 }
 function viewMeetDetail(){
   const m=curMeet();if(!m){U.meetId=null;return viewMeets();}
   const st=meetStats(m);
   let h='<button class="back" type="button" data-act="meet-back">← Все соревнования</button>';
-  h+='<div class="hero"><h2>'+esc(m.name)+'</h2><div class="meta"><span>'+fmtDate(m.date)+(m.place?' · '+esc(m.place):'')+' · бассейн '+m.pool+' м</span></div><div class="stats"><div><b>'+st.n+'</b><span>'+plural(st.n,['спортсмен','спортсмена','спортсменов'])+'</span></div><div><b>'+st.st+'</b><span>'+plural(st.st,['старт','старта','стартов'])+'</span></div></div>';
+  h+='<div class="hero"><h2>'+esc(m.name)+'</h2><div class="meta"><span>'+fmtRange(m.date,m.dateEnd)+(daysBetween(m.date,m.dateEnd)>1?' ('+daysBetween(m.date,m.dateEnd)+' '+plural(daysBetween(m.date,m.dateEnd),['день','дня','дней'])+')':'')+(m.place?' · '+esc(m.place):'')+' · бассейн '+m.pool+' м</span></div><div class="stats"><div><b>'+st.n+'</b><span>'+plural(st.n,['спортсмен','спортсмена','спортсменов'])+'</span></div><div><b>'+st.st+'</b><span>'+plural(st.st,['старт','старта','стартов'])+'</span></div></div>';
   h+='<div class="row-actions"><button class="btn primary" type="button" data-act="me-add-sw">Добавить спортсменов</button><button class="btn" type="button" data-act="meet-edit">Изменить</button></div>';
   h+='<div class="row-actions"><button class="btn" type="button" data-act="me-copy">Копировать список</button><button class="btn" type="button" data-act="me-csv">Скачать CSV</button><button class="btn danger" type="button" data-act="meet-del" data-confirm="Точно удалить?">Удалить</button></div></div>';
   if(!m.entries.length)return h+'<p class="note">В списке пока никого. Нажмите «Добавить спортсменов».</p>';
@@ -789,7 +801,7 @@ function viewMeetDetail(){
 }
 function meetText(m){
   const st=meetStats(m);
-  const lines=[m.name+' — '+fmtDate(m.date)+(m.place?', '+m.place:'')+' (бассейн '+m.pool+' м)','Заявка: '+st.n+' '+plural(st.n,['спортсмен','спортсмена','спортсменов'])+', '+st.st+' '+plural(st.st,['старт','старта','стартов']),''];
+  const lines=[m.name+' — '+fmtRange(m.date,m.dateEnd)+(m.place?', '+m.place:'')+' (бассейн '+m.pool+' м)','Заявка: '+st.n+' '+plural(st.n,['спортсмен','спортсмена','спортсменов'])+', '+st.st+' '+plural(st.st,['старт','старта','стартов']),''];
   m.entries.map(e=>({e:e,s:S.swimmers.find(x=>x.id===e.sid)})).filter(x=>x.s).sort((a,b)=>cmpName(a.s,b.s)).forEach((x,i)=>{
     const evs=x.e.events.slice().sort(evCmp).map(ev=>evShort(ev.stroke,ev.dist)+(ev.seed?' ('+fmtTime(ev.seed)+')':'')).join(', ');
     lines.push((i+1)+'. '+x.s.last+' '+x.s.first+', '+(x.s.year?x.s.year+' г.р., ':'')+(x.s.rank?'разряд '+rankShort(x.s.rank):'без разряда')+' — '+(evs||'дистанции не выбраны'));
@@ -909,14 +921,16 @@ function openMeetForm(id){
   const m=id?S.meets.find(x=>x.id===id):null;
   let pool=m?m.pool:25;
   const body='<label class="field"><span>Название</span><input id="f-name" class="inp" value="'+esc(m?m.name:'')+'" placeholder="Например, Первенство города" autocomplete="off"></label>'
-    +'<div class="grid2"><label class="field"><span>Дата</span><input id="f-date" type="date" class="inp" value="'+(m?m.date:todayStr())+'"></label><label class="field"><span>Место</span><input id="f-place" class="inp" value="'+esc(m?m.place||'':'')+'" autocomplete="off"></label></div>'
+    +'<div class="grid2"><label class="field"><span>Первый день</span><input id="f-date" type="date" class="inp" value="'+(m?m.date:todayStr())+'"></label><label class="field"><span>Последний день</span><input id="f-date2" type="date" class="inp" value="'+(m&&m.dateEnd?m.dateEnd:'')+'"></label></div><p class="note" style="margin:-4px 0 0">Если соревнования идут один день, последний день не заполняйте. Для нескольких дней укажите первый и последний.</p>'
+    +'<label class="field"><span>Место</span><input id="f-place" class="inp" value="'+esc(m?m.place||'':'')+'" autocomplete="off"></label>'
     +'<div class="field"><span>Бассейн</span><div class="seg wide" id="f-pool" role="group">'+[25,50].map(p=>'<button type="button" data-m="pool" data-v="'+p+'" aria-pressed="'+(pool===p)+'">'+p+' м</button>').join('')+'</div></div><p class="err" id="f-err" hidden></p>';
   const save=()=>{
-    const name=$('#f-name').value.trim(),date=$('#f-date').value,place=$('#f-place').value.trim();
+    const name=$('#f-name').value.trim(),date=$('#f-date').value,dateEnd=$('#f-date2').value||'',place=$('#f-place').value.trim();
     if(!name){setErr('Введите название соревнования.');return;}
-    if(!date){setErr('Укажите дату.');return;}
-    if(m){m.name=name;m.date=date;m.place=place;m.pool=pool;}
-    else{const n={id:uid(),name:name,date:date,place:place,pool:pool,entries:[]};S.meets.push(n);U.meetId=n.id;}
+    if(!date){setErr('Укажите первый день соревнований.');return;}
+    if(dateEnd&&dateEnd<date){setErr('Последний день не может быть раньше первого.');return;}
+    if(m){m.name=name;m.date=date;m.dateEnd=dateEnd;m.place=place;m.pool=pool;}
+    else{const n={id:uid(),name:name,date:date,dateEnd:dateEnd,place:place,pool:pool,entries:[]};S.meets.push(n);U.meetId=n.id;}
     mark('meets');closeModal();render(!m);toast('Соревнование сохранено');
   };
   openModal(m?'Соревнование':'Новое соревнование',body,'<button class="btn" type="button" data-m="close">Отмена</button><button class="btn primary" type="button" data-m="save">Сохранить</button>',
