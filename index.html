@@ -180,6 +180,16 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);flex:none
 .log-row{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line);font-size:14px}
 .log-row .d{font-family:var(--f-mono);font-size:13px;color:var(--muted);width:78px;flex:none}
 
+/* standards */
+.stdline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px}
+.stdwrap{overflow-x:auto;margin-top:4px}
+.stdtbl{border-collapse:separate;border-spacing:0;width:100%;min-width:640px;font-size:13px}
+.stdtbl th,.stdtbl td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums}
+.stdtbl td{font-family:var(--f-mono);font-size:12.5px}
+.stdtbl thead th{position:sticky;top:0;background:var(--surface-2);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.stdtbl th[scope=row],.stdtbl thead th:first-child{position:sticky;left:0;text-align:left;background:var(--surface);font-weight:600;z-index:1}
+.stdtbl thead th:first-child{background:var(--surface-2)}
+.stdtbl tr.grp th{text-align:left;background:var(--surface-2);font:500 13px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);position:sticky;left:0}
 /* modal, toast, tab bar */
 .overlay{position:fixed;inset:0;z-index:50;background:rgba(5,20,30,.55);display:flex;align-items:flex-end;justify-content:center;padding:0 env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px)}
 .sheet{background:var(--surface);color:var(--fg);width:100%;max-width:560px;max-height:92%;border-radius:16px 16px 0 0;display:flex;flex-direction:column;box-shadow:var(--shadow);min-height:0}
@@ -318,6 +328,38 @@ const evName=(s,d)=>d+' м, '+STROKES[SIDX[s]].name.toLowerCase();
 const evShort=(s,d)=>d+' '+STROKES[SIDX[s]].short;
 const evCmp=(a,b)=>(SIDX[a.stroke]-SIDX[b.stroke])||(a.dist-b.dist);
 const RANKS=[['','Нет разряда','—'],['y3','3 юношеский','3 юн.'],['y2','2 юношеский','2 юн.'],['y1','1 юношеский','1 юн.'],['a3','3 взрослый','3'],['a2','2 взрослый','2'],['a1','1 взрослый','1'],['kms','КМС','КМС'],['ms','МС','МС'],['msmk','МСМК','МСМК']];
+/* ЕВСК 2026–2029, плавание: приложение № 19 к приказу Минспорта России от 10.03.2026 № 201.
+   Время в миллисекундах; порядок: МСМК, МС, КМС, I, II, III, I юн, II юн, III юн. m — мужчины, f — женщины. */
+const STD={"25":{"free-50":{"m":[21180,22450,23200,24450,26850,29050,35050,45050,55050],"f":[24130,25750,26550,27850,30550,32550,39550,49550,59050]},"free-100":{"m":[46720,50000,53300,56700,63100,70600,83100,103100,123100],"f":[52680,56000,60000,63840,71400,79100,93100,113100,132100]},"free-200":{"m":[103020,110950,117450,125700,140200,158700,184200,225000,264200],"f":[115020,123450,131750,140450,156200,174200,205200,245200,283200]},"free-400":{"m":[220940,236000,248500,265000,300000,341000,397000,453000,509000],"f":[243320,260000,270000,292000,334000,378000,449000,520000,591000]},"free-800":{"m":[462700,497000,530000,564000,662000,744000,866000,986000,1106000],"f":[503990,540000,570000,611000,702000,795000,960000,1110000,1260000]},"free-1500":{"m":[884740,928500,1026500,1085000,1227500,1407500,1650000,1890000,2130000],"f":[972060,1032500,1101500,1204500,1354500,1557500,1805000,2050000,2300000]},"back-50":{"m":[23290,25890,27350,29350,32050,35550,41550,51550,61550],"f":[26570,28650,29850,31550,36550,40550,47050,57050,67050]},"back-100":{"m":[50540,57000,60400,64400,72600,81100,93600,116100,136100],"f":[57360,63600,68500,73000,81100,91100,105100,128100,148100]},"back-200":{"m":[112450,124750,131450,139200,156200,176200,204200,250200,290200],"f":[125150,137950,145950,154950,174200,196200,230200,275200,315200]},"breast-50":{"m":[26280,28250,30000,31650,35050,38550,45050,55050,65050],"f":[30040,32450,34250,35950,40050,44050,51550,61550,71550]},"breast-100":{"m":[57340,63000,66900,71400,80100,88100,104100,123100,143100],"f":[65050,72000,76000,81000,89600,101600,126100,136100,157100]},"breast-200":{"m":[125560,138450,146450,156450,175700,198700,231600,264600,304600],"f":[141340,154450,163450,173950,194200,219600,256600,291600,333200]},"fly-50":{"m":[22520,23950,24950,26950,30050,33050,38050,48050,58050],"f":[25620,27300,28450,30950,33550,36550,43550,53550,63550]},"fly-100":{"m":[50150,54000,58000,61500,70100,80100,90100,109100,121100],"f":[57160,61500,65000,69500,79100,90100,102100,121100,141100]},"fly-200":{"m":[112450,122950,129950,137950,156700,177200,201200,236200,276200],"f":[127150,136950,144450,154450,175200,198200,225200,261200,301200]},"im-100":{"m":[52570,56500,61500,65500,73600,83600,94600,113600,133600],"f":[59560,64500,69500,74500,83600,94600,106600,125600,165600]},"im-200":{"m":[114170,125950,134450,141950,158950,184200,209200,244200,284200],"f":[128110,140950,149450,158950,179200,205200,234200,270200,310200]},"im-400":{"m":[246680,268000,283000,302000,343000,391000,446000,502000,558000],"f":[275030,298000,315500,337000,381000,434000,495000,566000,637000]}},"50":{"free-50":{"m":[21910,23200,23950,25200,27600,29800,35800,45800,55800],"f":[24820,26500,27300,28600,31300,33300,40300,50300,59800]},"free-100":{"m":[48250,51500,54900,58300,64600,72100,84600,104600,124600],"f":[53990,57500,61500,65340,72900,80600,94600,114600,133600]},"free-200":{"m":[106500,113950,120650,128950,143200,161700,187200,227200,267200],"f":[116900,126450,134760,143450,158200,177200,208200,248200,286200]},"free-400":{"m":[227710,242000,254500,271000,306000,347000,403000,459000,515000],"f":[248040,266000,281000,299000,340000,384000,455000,526000,597000]},"free-800":{"m":[472600,505000,538000,577000,674000,756000,878000,998000,1118000],"f":[511120,548000,582000,623000,714000,807000,972000,1122000,1272000]},"free-1500":{"m":[906190,951000,1049000,1109000,1250000,1430000,1672000,1912500,2152500],"f":[980880,1055000,1124000,1227000,1377000,1580000,1827500,2072500,2322500]},"back-50":{"m":[24850,26650,28150,29950,32800,36300,42300,52300,62300],"f":[28050,29000,30700,32300,37300,41300,47800,57800,67800]},"back-100":{"m":[53720,58500,62000,66000,74100,82600,95100,117600,137600],"f":[59800,66000,70000,74500,82600,92600,106600,129600,149600]},"back-200":{"m":[117300,127750,135450,142450,158200,179200,207200,253200,293200],"f":[129770,140950,148950,157950,177200,199200,233200,278200,318000]},"breast-50":{"m":[27220,29000,30500,32400,35800,39300,45800,55800,65800],"f":[30770,33200,35000,36700,40800,44800,52300,62300,72300]},"breast-100":{"m":[59910,64500,68500,73000,81600,89600,105600,124600,144600],"f":[66880,73500,77500,82500,91100,103100,127600,137600,158600]},"breast-200":{"m":[129970,141450,149450,159450,178700,201700,234200,267200,307200],"f":[145240,157450,166400,176950,197200,222200,259200,294200,336200]},"fly-50":{"m":[23270,24700,25700,27700,30800,33800,38800,48800,58800],"f":[26030,28050,29200,31700,34300,37300,44300,54300,64300]},"fly-100":{"m":[51620,55500,59500,63000,71600,81600,91600,110600,130600],"f":[58060,63000,66500,71000,80600,91600,103600,122600,142600]},"fly-200":{"m":[116230,125950,133950,140950,159700,180200,204200,239200,279200],"f":[128900,139950,147450,157450,178200,201200,228200,264200,304200]},"im-200":{"m":[118590,129750,137250,145750,164000,188000,213000,248000,288000],"f":[132120,144750,153250,162750,183000,209000,238000,274000,314000]},"im-400":{"m":[253760,274000,288000,307000,348000,397000,452000,508000,564000],"f":[280800,303000,320500,342000,387000,440000,501000,572000,643000]}}};
+const STD_SHORT=['МСМК','МС','КМС','I','II','III','I юн','II юн','III юн'];
+const STD_RANKS=['МСМК','МС','КМС','1 разряд','2 разряд','3 разряд','1 юн. разряд','2 юн. разряд','3 юн. разряд'];
+const STD_GEN=['МСМК','МС','КМС','1 разряда','2 разряда','3 разряда','1 юн. разряда','2 юн. разряда','3 юн. разряда'];
+const stdFor=(pool,stroke,dist,sex)=>{const e=STD[pool]&&STD[pool][stroke+'-'+dist];return e&&e[sex]?e[sex]:null;};
+function rankOf(pool,stroke,dist,sex,ms){
+  const a=stdFor(pool,stroke,dist,sex);if(!a)return -2;
+  for(let i=0;i<a.length;i++){if(ms<=a[i])return i;}
+  return -1;
+}
+const fmtSec=ms=>{const c=Math.round(ms/10);return ms>=60000?fmtTime(ms):Math.floor(c/100)+','+pad(c%100)+' с';};
+function stdLine(sw,pool,stroke,dist,ms){
+  if(!sw.sex)return '';
+  const a=stdFor(pool,stroke,dist,sw.sex);if(!a)return '';
+  const r=rankOf(pool,stroke,dist,sw.sex,ms);
+  let t='<div class="stdline">'+(r>=0?'<span class="pill ok">'+esc(STD_RANKS[r])+'</span>':'<span class="pill">разряда нет</span>');
+  const nx=r>=0?r-1:8;
+  if(nx>=0)t+='<span class="inl">до '+esc(STD_GEN[nx])+': '+fmtSec(ms-a[nx])+'</span>';
+  return t+'</div>';
+}
+function achieved(sw,b){if(!sw.sex)return '';const r=rankOf(b.pool,b.stroke,b.dist,sw.sex,b.ms);return r>=0?'норматив: '+STD_SHORT[r]:'';}
+const FEM=new Set('аделина алиса алина алла альбина амалия амина анастасия анна арина ася азалия аня валентина валерия варвара василиса вера вероника вика виктория виолетта галина глафира дарья даша диана ева евгения екатерина елена елизавета есения злата зоя инна ирина камилла карина катя кира кристина ксения лада лариса лидия лилия лиана любовь людмила маргарита марина мария маша мила милана мирослава надежда наталья наталия настя ника нина оксана олеся ольга полина раиса регина розалия светлана снежана софия софья стефания таисия тамара татьяна ульяна устинья эвелина элина эльвира эмилия эмма юлия яна ярослава'.split(' '));
+function guessSex(last,first){
+  const f=String(first||'').toLowerCase().replace(/ё/g,'е').trim().split(/\s+/)[0],l=String(last||'').toLowerCase().replace(/ё/g,'е').trim();
+  if(FEM.has(f))return 'f';
+  if(/(ова|ева|ина|ына|ская|цкая|ая|яя)$/.test(l))return 'f';
+  if(/(ов|ев|ин|ын|ский|цкий|ой|ий|ей)$/.test(l))return 'm';
+  if(/[ая]$/.test(f))return '';
+  return f?'m':'';
+}
 const rankShort=c=>{const r=RANKS.find(x=>x[0]===c);return r?r[2]:'—';};
 const cmpName=(a,b)=>(a.last+' '+a.first).localeCompare(b.last+' '+b.first,'ru');
 const yrTxt=s=>s&&s.year?s.year+' г.р.':'';
@@ -339,7 +381,7 @@ function parseNames(text,have){
 
 /* ---------- state ---------- */
 const S={swimmers:[],results:{},groups:[],att:{},meets:[],meta:{}};
-const U={tab:'sw',swId:null,q:'',poolFilter:'all',hist:{},
+const U={resMode:'rank',stdSex:'m',tab:'sw',swId:null,q:'',poolFilter:'all',hist:{},
   resStroke:'free',resDist:50,resPool:25,lastStroke:'free',lastDist:50,lastPool:25,
   attView:'log',attDate:todayStr(),drafts:{},showOther:false,
   repFrom:'',repTo:'',repGroup:'all',showLog:false,
@@ -479,7 +521,7 @@ function loadDemo(){
   const people=[['Иванов','Пётр',2012,'y1'],['Смирнова','Анна',2013,'y2'],['Кузнецов','Михаил',2011,'a3'],['Попова','Мария',2012,'y1'],['Соколов','Артём',2014,'y3'],['Лебедева','София',2013,'y2'],['Козлов','Дмитрий',2010,'a2'],['Новикова','Алиса',2015,''],['Морозов','Никита',2012,'y2'],['Волкова','Ева',2014,'y3']];
   S.swimmers=[];S.results={};S.groups=[];S.att={};S.meets=[];S.meta={demo:true};
   people.forEach(p=>{
-    const s={id:uid(),last:p[0],first:p[1],year:p[2],rank:p[3]};S.swimmers.push(s);
+    const s={id:uid(),last:p[0],first:p[1],year:p[2],rank:p[3],sex:guessSex(p[0],p[1])};S.swimmers.push(s);
     const f=1.18-Math.min(Y-p[2],16)*0.012+(r()-0.5)*0.1;
     const keys=bk.slice().sort(()=>r()-0.5).slice(0,4);
     const list=[];
@@ -602,8 +644,8 @@ function viewSwimmers(){
   if(!list.length)return h+'<p class="note">Никого не найдено.</p>';
   h+='<div class="panel list">'+list.map(s=>{
     const n=(S.results[s.id]||[]).length;
-    return '<button class="item" type="button" data-act="sw-open" data-id="'+s.id+'"><span class="grow"><span class="name">'+esc(s.last)+' '+esc(s.first)+'</span><span class="sub">'+esc(dot([yrTxt(s),ym(n)]))+'</span></span>'+(s.rank?'<span class="pill">'+esc(rankShort(s.rank))+'</span>':'')+'</button>';
-  }).join('')+'</div><p class="note">Всего: '+S.swimmers.length+' '+plural(S.swimmers.length,['спортсмен','спортсмена','спортсменов'])+'</p><button class="btn" type="button" data-act="sw-bulk">Добавить списком</button>';
+    return '<button class="item" type="button" data-act="sw-open" data-id="'+s.id+'"><span class="grow"><span class="name">'+esc(s.last)+' '+esc(s.first)+'</span><span class="sub">'+esc(dot([yrTxt(s),s.sex==='f'?'жен.':s.sex==='m'?'муж.':'',ym(n)]))+'</span></span>'+(s.rank?'<span class="pill">'+esc(rankShort(s.rank))+'</span>':'')+'</button>';
+  }).join('')+'</div><p class="note">Всего: '+S.swimmers.length+' '+plural(S.swimmers.length,['спортсмен','спортсмена','спортсменов'])+'</p>'+(S.swimmers.some(x=>!x.sex)?'<p class="note">Пол нужен, чтобы программа определяла разряд по нормативам. Его можно определить по именам, затем проверьте список.</p>':'')+'<div class="row-actions"><button class="btn" type="button" data-act="sw-bulk">Добавить списком</button>'+(S.swimmers.some(x=>!x.sex)?'<button class="btn" type="button" data-act="sw-sex">Определить пол по именам ('+S.swimmers.filter(x=>!x.sex).length+')</button>':'')+'</div>';
   return h;
 }
 function viewSwimmerDetail(){
@@ -626,9 +668,10 @@ function viewSwimmerDetail(){
   h+='<div class="sec-head"><h3>Лучшие результаты</h3><div class="seg" role="group" aria-label="Бассейн">'+[['all','Все'],[25,'25 м'],[50,'50 м']].map(x=>'<button type="button" data-act="pool-filter" data-v="'+x[0]+'" aria-pressed="'+(pf===x[0])+'">'+x[1]+'</button>').join('')+'</div></div>';
   h+='<button class="btn primary" type="button" data-act="res-add" data-id="'+s.id+'" style="width:100%;margin-bottom:12px">Добавить результат</button>';
   if(!groups.length){h+='<p class="note">Результатов пока нет. Записывайте время после контрольных заплывов и стартов, лучшее по каждой дистанции будет показано здесь.</p>';return h;}
+  if(!s.sex)h+='<p class="note">Чтобы видеть выполненные разряды, укажите пол: кнопка «Изменить» вверху.</p>';
   h+='<div class="panel list">'+groups.map(g=>{
     const open=U.hist[g.k];
-    let x='<div class="res-item"><div class="res-main"><div class="grow"><span class="name">'+esc(evName(g.stroke,g.dist))+'</span><span class="sub">бассейн '+g.pool+' м · '+fmtDate(g.best.date)+'</span></div><span class="time big">'+fmtTime(g.best.ms)+'</span></div>';
+    let x='<div class="res-item"><div class="res-main"><div class="grow"><span class="name">'+esc(evName(g.stroke,g.dist))+'</span><span class="sub">бассейн '+g.pool+' м · '+fmtDate(g.best.date)+'</span></div><span class="time big">'+fmtTime(g.best.ms)+'</span></div>'+stdLine(s,g.pool,g.stroke,g.dist,g.best.ms);
     x+='<button class="linkbtn" type="button" data-act="hist-toggle" data-k="'+g.k+'">'+(open?'Скрыть историю':'История ('+g.arr.length+')')+'</button>';
     if(open){
       x+='<div class="hist">'+g.arr.map(r=>'<div class="hist-row"><span>'+fmtDate(r.date)+'</span><span class="time">'+fmtTime(r.ms)+'</span><span class="delta">'+(r.id===g.best.id?'лучший':fmtDelta(r.ms-g.best.ms))+'</span><button class="btn sm danger" type="button" data-act="res-del" data-sid="'+s.id+'" data-id="'+r.id+'" data-confirm="Удалить?">Удалить</button></div>').join('')+'</div>';
@@ -639,10 +682,27 @@ function viewSwimmerDetail(){
 }
 
 /* ---------- views: results ranking ---------- */
+function viewStandards(){
+  const pool=U.resPool,sex=U.stdSex,tbl=STD[pool];
+  let h='<div class="filters"><div class="field full"><span>Пол</span><div class="seg wide" role="group" aria-label="Пол">'+[['m','Мужчины, юноши'],['f','Женщины, девушки']].map(x=>'<button type="button" data-act="std-sex" data-v="'+x[0]+'" aria-pressed="'+(sex===x[0])+'">'+x[1]+'</button>').join('')+'</div></div>'
+    +'<div class="field full"><span>Бассейн</span><div class="seg wide" role="group" aria-label="Бассейн">'+[25,50].map(p=>'<button type="button" data-act="res-pool" data-v="'+p+'" aria-pressed="'+(pool===p)+'">'+p+' м</button>').join('')+'</div></div></div>';
+  h+='<div class="panel stdwrap"><table class="stdtbl"><thead><tr><th scope="col">Дистанция</th>'+STD_SHORT.map(x=>'<th scope="col">'+x+'</th>').join('')+'</tr></thead><tbody>';
+  STROKES.forEach(st=>{
+    const evs=st.d.filter(d=>tbl[st.k+'-'+d]);
+    if(!evs.length)return;
+    h+='<tr class="grp"><th colspan="10">'+esc(st.name)+'</th></tr>';
+    evs.forEach(d=>{h+='<tr><th scope="row">'+d+' м</th>'+tbl[st.k+'-'+d][sex].map(v=>'<td>'+fmtTime(v)+'</td>').join('')+'</tr>';});
+  });
+  h+='</tbody></table></div>';
+  h+='<p class="note">ЕВСК 2026–2029, плавание: приложение № 19 к приказу Минспорта России от 10.03.2026 № 201. Норматив выполнен, если время равно нормативу или лучше. Для присвоения разряда важны также статус соревнований, возраст и электронный хронометраж. В эстафетах норматив засчитывается только за первый этап и равен личному. Значения переписаны из текста приказа, для официальных документов сверяйте с оригиналом.</p>';
+  return h;
+}
 function viewResults(){
+  const seg='<div class="seg wide" role="group" aria-label="Раздел" style="margin-top:16px">'+[['rank','Рейтинг'],['std','Нормативы']].map(x=>'<button type="button" data-act="std-mode" data-v="'+x[0]+'" aria-pressed="'+(U.resMode===x[0])+'">'+x[1]+'</button>').join('')+'</div>';
+  if(U.resMode==='std')return seg+viewStandards();
   const st=STROKES[SIDX[U.resStroke]];
   if(st.d.indexOf(U.resDist)<0)U.resDist=st.d.indexOf(100)>-1?100:st.d[0];
-  let h='<div class="filters"><label class="field"><span>Стиль</span><select id="r-stroke" class="inp" data-ch="r-stroke">'+STROKES.map(x=>'<option value="'+x.k+'"'+(x.k===U.resStroke?' selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select></label>';
+  let h=seg+'<div class="filters"><label class="field"><span>Стиль</span><select id="r-stroke" class="inp" data-ch="r-stroke">'+STROKES.map(x=>'<option value="'+x.k+'"'+(x.k===U.resStroke?' selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select></label>';
   h+='<label class="field"><span>Дистанция</span><select id="r-dist" class="inp" data-ch="r-dist">'+st.d.map(d=>'<option value="'+d+'"'+(d===U.resDist?' selected':'')+'>'+d+' м</option>').join('')+'</select></label>';
   h+='<div class="field full"><span>Бассейн</span><div class="seg wide" role="group" aria-label="Бассейн">'+[25,50].map(p=>'<button type="button" data-act="res-pool" data-v="'+p+'" aria-pressed="'+(U.resPool===p)+'">'+p+' м</button>').join('')+'</div></div></div>';
   if(!S.swimmers.length)return h+'<p class="note">Сначала добавьте спортсменов на вкладке «Спортсмены».</p>';
@@ -650,7 +710,7 @@ function viewResults(){
   const none=S.swimmers.length-rows.length;
   h+='<div class="sec-head"><h3>'+esc(evName(U.resStroke,U.resDist))+', '+U.resPool+' м</h3></div>';
   if(!rows.length)return h+'<p class="note">Ни у кого пока нет результата на этой дистанции.</p>';
-  h+='<div class="panel list">'+rows.map((x,i)=>'<button class="item" type="button" data-act="res-open-sw" data-id="'+x.s.id+'"><span class="place">'+(i+1)+'</span><span class="grow"><span class="name">'+esc(x.s.last)+' '+esc(x.s.first)+'</span><span class="sub">'+esc(dot([yrTxt(x.s),x.s.rank?rankShort(x.s.rank):'',fmtDate(x.b.date)]))+'</span></span><span class="time big">'+fmtTime(x.b.ms)+'</span></button>').join('')+'</div>';
+  h+='<div class="panel list">'+rows.map((x,i)=>'<button class="item" type="button" data-act="res-open-sw" data-id="'+x.s.id+'"><span class="place">'+(i+1)+'</span><span class="grow"><span class="name">'+esc(x.s.last)+' '+esc(x.s.first)+'</span><span class="sub">'+esc(dot([yrTxt(x.s),x.s.rank?rankShort(x.s.rank):'',fmtDate(x.b.date),achieved(x.s,x.b)]))+'</span></span><span class="time big">'+fmtTime(x.b.ms)+'</span></button>').join('')+'</div>';
   if(none)h+='<p class="note">Нет результата на этой дистанции: '+none+'</p>';
   return h;
 }
@@ -844,20 +904,21 @@ function render(nav){
 function openSwimmerForm(id){
   const s=id?S.swimmers.find(x=>x.id===id):null,Y=new Date().getFullYear();
   const body='<div class="grid2"><label class="field"><span>Фамилия</span><input id="f-last" class="inp" value="'+esc(s?s.last:'')+'" autocomplete="off"></label><label class="field"><span>Имя</span><input id="f-first" class="inp" value="'+esc(s?s.first:'')+'" autocomplete="off"></label></div>'
-    +'<div class="grid2"><label class="field"><span>Год рождения (можно пропустить)</span><input id="f-year" class="inp" inputmode="numeric" maxlength="4" placeholder="'+(Y-12)+'" value="'+(s&&s.year?esc(s.year):'')+'"></label><label class="field"><span>Разряд</span><select id="f-rank" class="inp">'+RANKS.map(r=>'<option value="'+r[0]+'"'+(s&&s.rank===r[0]?' selected':'')+'>'+r[1]+'</option>').join('')+'</select></label></div><p class="err" id="f-err" hidden></p>';
+    +'<div class="grid2"><label class="field"><span>Год рождения (можно пропустить)</span><input id="f-year" class="inp" inputmode="numeric" maxlength="4" placeholder="'+(Y-12)+'" value="'+(s&&s.year?esc(s.year):'')+'"></label><label class="field"><span>Разряд</span><select id="f-rank" class="inp">'+RANKS.map(r=>'<option value="'+r[0]+'"'+(s&&s.rank===r[0]?' selected':'')+'>'+r[1]+'</option>').join('')+'</select></label></div>'
+    +'<label class="field"><span>Пол (нужен, чтобы определять разряд по нормативам)</span><select id="f-sex" class="inp"><option value="">Не указан</option><option value="m"'+(s&&s.sex==='m'?' selected':'')+'>Мужской</option><option value="f"'+(s&&s.sex==='f'?' selected':'')+'>Женский</option></select></label><p class="err" id="f-err" hidden></p>';
   const save=()=>{
-    const last=$('#f-last').value.trim(),first=$('#f-first').value.trim(),yRaw=$('#f-year').value.trim(),year=yRaw?parseInt(yRaw,10):null,rank=$('#f-rank').value;
+    const last=$('#f-last').value.trim(),first=$('#f-first').value.trim(),yRaw=$('#f-year').value.trim(),year=yRaw?parseInt(yRaw,10):null,rank=$('#f-rank').value,sex=$('#f-sex').value;
     if(!last||!first){setErr('Укажите фамилию и имя.');return;}
     if(yRaw&&!(year>=1940&&year<=Y)){setErr('Год рождения указан неверно, например '+(Y-12)+'. Поле можно оставить пустым.');return;}
-    if(s){s.last=last;s.first=first;s.year=year;s.rank=rank;}
-    else{const n={id:uid(),last:last,first:first,year:year,rank:rank};S.swimmers.push(n);}
+    if(s){s.last=last;s.first=first;s.year=year;s.rank=rank;s.sex=sex;}
+    else{const n={id:uid(),last:last,first:first,year:year,rank:rank,sex:sex};S.swimmers.push(n);}
     mark('swimmers');closeModal();render();toast(s?'Изменения сохранены':'Спортсмен добавлен');
   };
   openModal(s?'Спортсмен':'Новый спортсмен',body,'<button class="btn" type="button" data-m="close">Отмена</button><button class="btn primary" type="button" data-m="save">Сохранить</button>',{save:save,enter:save});
 }
 function openBulkForm(){
   const have=()=>S.swimmers.map(x=>nameKey(x.last,x.first));
-  const body='<p class="note" style="margin:0">По одному человеку в строке: сначала фамилия, потом имя. Год рождения не нужен. Номера в начале строк и лишние пробелы игнорируются.</p>'
+  const body='<p class="note" style="margin:0">По одному человеку в строке: сначала фамилия, потом имя. Год рождения не нужен, пол определится по имени (его можно поправить в карточке). Номера в начале строк и лишние пробелы игнорируются.</p>'
     +'<textarea id="f-bulk" class="inp ta" placeholder="Иванов Пётр&#10;Смирнова Анна" style="font-family:inherit;font-size:15px" autocapitalize="words" spellcheck="false"></textarea><p class="note" id="f-bulk-info" style="margin:0">Вставьте список.</p><p class="err" id="f-err" hidden></p>';
   const info=()=>{
     const r=parseNames($('#f-bulk').value,have());
@@ -866,7 +927,7 @@ function openBulkForm(){
   const save=()=>{
     const r=parseNames($('#f-bulk').value,have());
     if(!r.add.length){setErr('Нечего добавлять. Нужны строки вида «Иванов Пётр».');return;}
-    r.add.forEach(p=>S.swimmers.push({id:uid(),last:p.last,first:p.first,year:null,rank:''}));
+    r.add.forEach(p=>S.swimmers.push({id:uid(),last:p.last,first:p.first,year:null,rank:'',sex:guessSex(p.last,p.first)}));
     mark('swimmers');closeModal();render();
     toast('Добавлено: '+r.add.length+(r.dup?'. Уже были: '+r.dup:'')+(r.bad.length?'. Пропущено строк: '+r.bad.length:''));
   };
@@ -888,7 +949,8 @@ function openResultForm(sid){
     const date=$('#f-date').value||todayStr(),prev=bestFor(sid,stroke,dist,pool);
     addResult(sid,{stroke:stroke,dist:dist,pool:pool,ms:ms,date:date});
     U.lastStroke=stroke;U.lastDist=dist;U.lastPool=pool;
-    toast(prev&&ms<prev.ms?'Личный рекорд: '+fmtTime(ms)+' ('+fmtDelta(ms-prev.ms)+' с)':'Записано: '+fmtTime(ms));
+    const rk=s.sex?rankOf(pool,stroke,dist,s.sex,ms):-1;
+    toast((prev&&ms<prev.ms?'Личный рекорд: '+fmtTime(ms)+' ('+fmtDelta(ms-prev.ms)+' с)':'Записано: '+fmtTime(ms))+(rk>=0?'. Норматив: '+STD_SHORT[rk]:''));
     render();
     if(more===true){$('#f-time').value='';setErr('');$('#f-time').focus();}else closeModal();
   };
@@ -1025,6 +1087,9 @@ const A={
   'sw-back':()=>{U.swId=null;render(true);},
   'sw-add':()=>openSwimmerForm(),
   'sw-bulk':()=>openBulkForm(),
+  'sw-sex':()=>{let a=0,b=0;S.swimmers.forEach(x=>{if(x.sex)return;const g=guessSex(x.last,x.first);if(g){x.sex=g;a++;}else b++;});mark('swimmers');render();toast('Пол определён: '+a+(b?'. Не удалось определить: '+b:'')+'. Проверьте список.');},
+  'std-mode':el=>{U.resMode=el.dataset.v;render();},
+  'std-sex':el=>{U.stdSex=el.dataset.v;render();},
   'sw-edit':el=>openSwimmerForm(el.dataset.id),
   'sw-del':el=>{deleteSwimmer(el.dataset.id);U.swId=null;render(true);toast('Спортсмен удалён');},
   'pool-filter':el=>{U.poolFilter=el.dataset.v==='all'?'all':+el.dataset.v;render();},
