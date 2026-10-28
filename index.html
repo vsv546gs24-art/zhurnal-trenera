@@ -1053,29 +1053,37 @@ function openEvents(sid){
 }
 function openData(){
   const dbm=store.mode==='db';
-  const body='<p class="note" style="margin:0">'+(dbm?'Данные сохраняются в вашем аккаунте и открываются с любого устройства, где вы войдёте в него. Резервную копию всё равно стоит иногда скачивать.':'Данные хранятся только в этом браузере. Если очистить данные сайта, они пропадут, поэтому скачивайте резервные копии.')+'</p>'
+  const body='<p class="note" style="margin:0">'+(dbm?'Данные сохраняются в вашем аккаунте и открываются с любого устройства, где вы войдёте в него. Резервную копию всё равно стоит иногда скачивать.':'Данные хранятся только в этом браузере и сами на другие устройства не попадают. Чтобы перенести их на другой телефон или компьютер: здесь нажмите «Скопировать данные», а на другом устройстве откройте «Данные» и вставьте текст в нижнее поле.')+'</p>'
+    +'<button class="btn" type="button" data-m="copy">Скопировать данные для переноса</button>'
     +'<button class="btn" type="button" data-m="export">Скачать резервную копию (JSON)</button>'
-    +'<label class="field"><span>Восстановить из резервной копии</span><input id="f-import" type="file" accept=".json,application/json" class="inp" style="padding:9px 12px;height:auto"></label><div id="imp-info"></div>'
+    +'<hr style="border:0;border-top:1px solid var(--line);width:100%;margin:2px 0">'
+    +'<label class="field"><span>Вставить скопированные данные</span><textarea id="f-paste" class="inp" data-noenter style="min-height:84px;font-family:var(--f-mono);font-size:12px" placeholder="Вставьте сюда текст, скопированный на другом устройстве" autocomplete="off" spellcheck="false"></textarea></label><div id="paste-info"></div>'
+    +'<label class="field"><span>Или восстановить из файла копии</span><input id="f-import" type="file" accept=".json,application/json" class="inp" style="padding:9px 12px;height:auto"></label><div id="imp-info"></div>'
     +'<hr style="border:0;border-top:1px solid var(--line);width:100%;margin:2px 0">'
     +'<button class="btn danger" type="button" data-m="wipe" data-confirm="Нажмите ещё раз: удалить всё">Удалить все данные</button>';
   let pending=null;
+  const show=(txt,info,what)=>{
+    const t=String(txt||'').trim();
+    if(!t){pending=null;info.innerHTML='';return;}
+    try{
+      const o=JSON.parse(t);
+      if(!o||o.app!=='zhurnal-trenera'||!Array.isArray(o.swimmers))throw new Error('format');
+      pending=o;
+      const nr=Object.keys(o.results||{}).reduce((a,k)=>a+((o.results[k]||[]).length),0);
+      info.innerHTML='<p class="note" style="margin:0 0 8px">'+what+': спортсменов '+o.swimmers.length+', результатов '+nr+', групп '+(o.groups||[]).length+', соревнований '+(o.meets||[]).length+'. Текущие данные на этом устройстве будут заменены.</p><button class="btn primary" type="button" data-m="apply" data-confirm="Нажмите ещё раз: заменить данные">Заменить данные</button>';
+    }catch(err){pending=null;info.innerHTML='<p class="err">Это не данные «Журнала тренера». Скопируйте их заново на другом устройстве.</p>';}
+  };
   openModal('Данные',body,'<button class="btn primary" type="button" data-m="close">Готово</button>',
-    {export:()=>saveFile('zhurnal-trenera-'+todayStr()+'.json',JSON.stringify(backupObj(),null,1)),
+    {copy:()=>copyText(JSON.stringify(backupObj()),'Данные для переноса'),
+     export:()=>saveFile('zhurnal-trenera-'+todayStr()+'.json',JSON.stringify(backupObj(),null,1)),
      wipe:()=>{clearAll();closeModal();render(true);toast('Все данные удалены');},
-     apply:()=>{if(pending){replaceAll(pending);closeModal();render(true);toast('Данные восстановлены');}}},
+     apply:()=>{if(pending){replaceAll(pending);closeModal();render(true);toast('Данные перенесены');}}},
     ov=>{
+      $('#f-paste',ov).addEventListener('input',e=>show(e.target.value,$('#paste-info',ov),'В тексте'));
       $('#f-import',ov).addEventListener('change',e=>{
-        const f=e.target.files&&e.target.files[0],info=$('#imp-info',ov);if(!f)return;
+        const f=e.target.files&&e.target.files[0];if(!f)return;
         const fr=new FileReader();
-        fr.onload=()=>{
-          try{
-            const o=JSON.parse(String(fr.result));
-            if(!o||o.app!=='zhurnal-trenera'||!Array.isArray(o.swimmers))throw new Error('format');
-            pending=o;
-            const nr=Object.keys(o.results||{}).reduce((a,k)=>a+((o.results[k]||[]).length),0);
-            info.innerHTML='<p class="note" style="margin:0 0 8px">В файле: спортсменов '+o.swimmers.length+', результатов '+nr+', групп '+(o.groups||[]).length+', соревнований '+(o.meets||[]).length+'. Текущие данные будут заменены.</p><button class="btn primary" type="button" data-m="apply" data-confirm="Нажмите ещё раз: заменить данные">Заменить данные из файла</button>';
-          }catch(err){pending=null;info.innerHTML='<p class="err">Это не резервная копия «Журнала тренера».</p>';}
-        };
+        fr.onload=()=>show(fr.result,$('#imp-info',ov),'В файле');
         fr.readAsText(f);
       });
     });
