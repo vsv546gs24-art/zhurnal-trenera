@@ -206,6 +206,8 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);flex:none
 .mini{font:500 13px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:4px}
 .seed{display:flex;align-items:center;gap:10px}
 .seed .inp{width:124px;flex:none;font-family:var(--f-mono)}
+.inp.tm{font-family:var(--f-mono);font-size:22px;letter-spacing:.06em;text-align:center}
+.seed .inp.tm{width:132px;font-size:17px}
 .pick{display:flex;align-items:center;gap:12px;padding:8px 2px;border-bottom:1px solid var(--line);min-height:48px;cursor:pointer}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;max-width:calc(100% - 32px);font-size:14px;box-shadow:var(--shadow)}
 .tabbar{flex:none;z-index:20;background:var(--surface);border-top:1px solid var(--line);
@@ -605,6 +607,57 @@ function openModal(title,body,foot,handlers,mount){
   const f=ov.querySelector('input:not([type=checkbox]):not([type=file]),select');if(f)f.focus({preventScroll:true});
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#ov'))closeModal();});
+
+/* ===== маска ввода времени 00,00,00 ===== */
+function tmFmt(b){var t='dd,dd,dd',i=0;return b?t.replace(/d/g,function(){return i<b.length?b[i++]:'_';}):'';}
+function tmPos(n){return n<2?n:(n<4?n+1:n+2);}
+function msFromDigits(b){
+  if(!b||b.length!==6)return null;
+  var mm=+b.slice(0,2),ss=+b.slice(2,4),cc=+b.slice(4,6);
+  if(ss>=60)return null;
+  var ms=(mm*60+ss)*1000+cc*10;
+  return ms>0?ms:null;
+}
+function digitsFromMs(ms){
+  if(!ms)return '';
+  var cs=Math.round(ms/10),mm=Math.floor(cs/6000);
+  if(mm>99)return '';
+  var p=function(n){return (n<10?'0':'')+n;};
+  return p(mm)+p(Math.floor(cs%6000/100))+p(cs%100);
+}
+function attachTimeMask(inp,init){
+  inp.setAttribute('inputmode','numeric');inp.setAttribute('pattern','[0-9]*');
+  inp.setAttribute('autocomplete','off');inp.setAttribute('enterkeyhint','done');
+  inp.setAttribute('placeholder','00,00,00');inp.classList.add('tm');
+  var d=String(init||'').replace(/\D/g,'').slice(0,6);
+  var caret=function(){var p=tmPos(d.length);try{inp.setSelectionRange(p,p);}catch(e){}};
+  var paint=function(){inp.value=tmFmt(d);};
+  var later=function(){caret();setTimeout(caret,0);};
+  inp.addEventListener('input',function(e){
+    var nd=inp.value.replace(/\D/g,'').slice(0,6);
+    if(e&&e.inputType&&e.inputType.indexOf('delete')===0&&nd.length>=d.length)nd=d.slice(0,-1);
+    d=nd;paint();later();
+  });
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Backspace'||e.key==='Delete'){e.preventDefault();d=d.slice(0,-1);paint();later();}
+  });
+  inp.addEventListener('paste',function(e){
+    e.preventDefault();
+    var t=((e.clipboardData||window.clipboardData).getData('text')||'').trim(),nd='';
+    if(/^[\d\s,.:]+$/.test(t)&&/^\d+$/.test(t.replace(/\D/g,''))&&!/[:.]/.test(t)&&t.replace(/\D/g,'').length===6)nd=t.replace(/\D/g,'');
+    else{var ms=parseTime(t);nd=digitsFromMs(ms);}
+    if(nd){d=nd;paint();later();}
+  });
+  ['focus','click','touchend','keyup'].forEach(function(n){inp.addEventListener(n,later);});
+  inp._tm={get:function(){return d;},set:function(v){d=String(v||'').replace(/\D/g,'').slice(0,6);paint();}};
+  paint();
+}
+function readTime(inp){
+  var d=inp._tm?inp._tm.get():'';
+  if(!d)return {empty:true};
+  var ms=msFromDigits(d);
+  return ms?{ms:ms}:{error:true};
+}
 function setErr(t){const e=$('#f-err');if(e){e.textContent=t;e.hidden=!t;}}
 
 async function copyText(text,title){
@@ -949,22 +1002,25 @@ function openResultForm(sid){
   const body='<p class="sub" style="font-size:14px">'+esc(s.last)+' '+esc(s.first)+'</p>'
     +'<div class="grid2"><label class="field"><span>Стиль</span><select id="f-stroke" class="inp">'+STROKES.map(x=>'<option value="'+x.k+'"'+(x.k===stroke?' selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select></label><label class="field"><span>Дистанция</span><select id="f-dist" class="inp">'+distOpts()+'</select></label></div>'
     +'<div class="field"><span>Бассейн</span><div class="seg wide" id="f-pool" role="group">'+[25,50].map(p=>'<button type="button" data-m="pool" data-v="'+p+'" aria-pressed="'+(pool===p)+'">'+p+' м</button>').join('')+'</div></div>'
-    +'<div class="grid2"><label class="field"><span>Время</span><input id="f-time" class="inp time" placeholder="1:05,32" autocomplete="off"></label><label class="field"><span>Дата</span><input id="f-date" type="date" class="inp" value="'+todayStr()+'"></label></div><p class="err" id="f-err" hidden></p>';
+    +'<div class="grid2"><label class="field"><span>Время</span><input id="f-time" class="inp time" autocomplete="off"></label><label class="field"><span>Дата</span><input id="f-date" type="date" class="inp" value="'+todayStr()+'"></label></div><p class="note" style="margin:0">Вводите шесть цифр подряд: минуты, секунды, сотые. Например, 1:05,32 — это 01,05,32.</p><p class="err" id="f-err" hidden></p>';
   const save=more=>{
-    const ms=parseTime($('#f-time').value);
-    if(!ms){setErr('Введите время, например 1:05,32 или 34,50.');return;}
+    const rt=readTime($('#f-time'));
+    if(rt.empty){setErr('Введите время: шесть цифр, например 010532.');return;}
+    if(rt.error){setErr('Время введено неверно: нужно шесть цифр, секунды меньше 60.');return;}
+    const ms=rt.ms;
     const date=$('#f-date').value||todayStr(),prev=bestFor(sid,stroke,dist,pool);
     addResult(sid,{stroke:stroke,dist:dist,pool:pool,ms:ms,date:date});
     U.lastStroke=stroke;U.lastDist=dist;U.lastPool=pool;
     const rk=s.sex?rankOf(pool,stroke,dist,s.sex,ms):-1;
     toast((prev&&ms<prev.ms?'Личный рекорд: '+fmtTime(ms)+' ('+fmtDelta(ms-prev.ms)+' с)':'Записано: '+fmtTime(ms))+(rk>=0?'. Норматив: '+STD_SHORT[rk]:''));
     render();
-    if(more===true){$('#f-time').value='';setErr('');$('#f-time').focus();}else closeModal();
+    if(more===true){$('#f-time')._tm.set('');setErr('');$('#f-time').focus();}else closeModal();
   };
   openModal('Новый результат',body,'<button class="btn" type="button" data-m="close">Отмена</button><button class="btn" type="button" data-m="more">Сохранить и ещё</button><button class="btn primary" type="button" data-m="save">Сохранить</button>',
     {save:()=>save(false),more:()=>save(true),enter:()=>save(false),
      pool:b=>{pool=+b.dataset.v;document.querySelectorAll('#f-pool button').forEach(x=>x.setAttribute('aria-pressed',String(+x.dataset.v===pool)));}},
     ov=>{
+      attachTimeMask($('#f-time',ov),'');
       $('#f-stroke',ov).addEventListener('change',e=>{stroke=e.target.value;const d=STROKES[SIDX[stroke]].d;if(d.indexOf(dist)<0)dist=d.indexOf(100)>-1?100:d[0];$('#f-dist',ov).innerHTML=distOpts();});
       $('#f-dist',ov).addEventListener('change',e=>{dist=+e.target.value;});
     });
@@ -1030,23 +1086,25 @@ function openEvents(sid){
   const e=m&&m.entries.find(x=>x.sid===sid);
   if(!e||!sw)return;
   const sel={};
-  e.events.forEach(ev=>{sel[evKey(ev.stroke,ev.dist)]={stroke:ev.stroke,dist:ev.dist,seed:ev.seed?fmtTime(ev.seed):''};});
+  e.events.forEach(ev=>{sel[evKey(ev.stroke,ev.dist)]={stroke:ev.stroke,dist:ev.dist,seed:ev.seed?digitsFromMs(ev.seed):''};});
   const best=(st,d)=>{const b=bestFor(sid,st,d,m.pool);return b?fmtTime(b.ms):'';};
-  const collect=()=>{document.querySelectorAll('#ov [data-seed]').forEach(i=>{const k=i.dataset.seed;if(sel[k])sel[k].seed=i.value;});};
+  const bestDig=(st,d)=>{const b=bestFor(sid,st,d,m.pool);return b?digitsFromMs(b.ms):'';};
+  const collect=()=>{document.querySelectorAll('#ov [data-seed]').forEach(i=>{const k=i.dataset.seed;if(sel[k])sel[k].seed=i._tm?i._tm.get():'';});};
   const draw=()=>{
     const chips=STROKES.map(st=>'<div class="ev-row"><div class="ev-label">'+esc(st.name)+'</div><div class="chips">'+st.d.map(d=>{const k=evKey(st.k,d),on=!!sel[k];return '<button type="button" class="chip'+(on?' on':'')+'" data-m="tg" data-s="'+st.k+'" data-d="'+d+'" aria-pressed="'+on+'">'+d+' м</button>';}).join('')+'</div></div>').join('');
     const chosen=Object.keys(sel).map(k=>sel[k]).sort(evCmp);
-    const seeds=chosen.length?'<h4 class="mini">Заявочное время</h4>'+chosen.map(x=>{const k=evKey(x.stroke,x.dist),b=best(x.stroke,x.dist);return '<label class="seed"><span class="grow">'+esc(evName(x.stroke,x.dist))+'<span class="sub">'+(b?'лучшее в бассейне '+m.pool+' м: '+b:'результата в бассейне '+m.pool+' м нет')+'</span></span><input class="inp" data-seed="'+k+'" data-noenter value="'+esc(x.seed)+'" placeholder="м:сс,хх" autocomplete="off"></label>';}).join(''):'<p class="note">Отметьте дистанции, на которые заявлен спортсмен.</p>';
+    const seeds=chosen.length?'<h4 class="mini">Заявочное время</h4>'+chosen.map(x=>{const k=evKey(x.stroke,x.dist),b=best(x.stroke,x.dist);return '<label class="seed"><span class="grow">'+esc(evName(x.stroke,x.dist))+'<span class="sub">'+(b?'лучшее в бассейне '+m.pool+' м: '+b:'результата в бассейне '+m.pool+' м нет')+'</span></span><input class="inp" data-seed="'+k+'" data-noenter autocomplete="off"></label>';}).join(''):'<p class="note">Отметьте дистанции, на которые заявлен спортсмен.</p>';
     $('#ev-body').innerHTML=chips+seeds;
+    document.querySelectorAll('#ev-body [data-seed]').forEach(i=>attachTimeMask(i,sel[i.dataset.seed]?sel[i.dataset.seed].seed:''));
   };
   const save=()=>{
     collect();
     const out=[];
     const keys=Object.keys(sel).map(k=>sel[k]).sort(evCmp);
     for(let i=0;i<keys.length;i++){
-      const x=keys[i],txt=String(x.seed||'').trim();
+      const x=keys[i],txt=String(x.seed||'');
       let ms=null;
-      if(txt){ms=parseTime(txt);if(!ms){setErr('Не удалось разобрать время: '+evName(x.stroke,x.dist)+'.');return;}}
+      if(txt){ms=msFromDigits(txt);if(!ms){setErr('Заявочное время неполное или неверное: '+evName(x.stroke,x.dist)+'. Нужно шесть цифр: мм,сс,хх.');return;}}
       out.push({stroke:x.stroke,dist:x.dist,seed:ms});
     }
     e.events=out;mark('meets');closeModal();render();toast('Дистанции сохранены');
@@ -1054,7 +1112,7 @@ function openEvents(sid){
   openModal(sw.last+' '+sw.first,'<div class="stack" id="ev-body"></div><p class="err" id="f-err" hidden></p>','<button class="btn" type="button" data-m="close">Отмена</button><button class="btn primary" type="button" data-m="save">Сохранить</button>',
     {save:save,tg:b=>{
       collect();const st=b.dataset.s,d=+b.dataset.d,k=evKey(st,d);
-      if(sel[k])delete sel[k];else sel[k]={stroke:st,dist:d,seed:best(st,d)};
+      if(sel[k])delete sel[k];else sel[k]={stroke:st,dist:d,seed:bestDig(st,d)};
       draw();
     }},draw);
 }
