@@ -308,6 +308,22 @@ const evCmp=(a,b)=>(SIDX[a.stroke]-SIDX[b.stroke])||(a.dist-b.dist);
 const RANKS=[['','Нет разряда','—'],['y3','3 юношеский','3 юн.'],['y2','2 юношеский','2 юн.'],['y1','1 юношеский','1 юн.'],['a3','3 взрослый','3'],['a2','2 взрослый','2'],['a1','1 взрослый','1'],['kms','КМС','КМС'],['ms','МС','МС'],['msmk','МСМК','МСМК']];
 const rankShort=c=>{const r=RANKS.find(x=>x[0]===c);return r?r[2]:'—';};
 const cmpName=(a,b)=>(a.last+' '+a.first).localeCompare(b.last+' '+b.first,'ru');
+const yrTxt=s=>s&&s.year?s.year+' г.р.':'';
+const dot=a=>a.filter(Boolean).join(' · ');
+const nameKey=(l,f)=>(l+' '+f).toLowerCase().replace(/ё/g,'е').replace(/\s+/g,' ').trim();
+function parseNames(text,have){
+  const seen=new Set(have||[]),add=[],bad=[];let dup=0;
+  String(text||'').split(/\r?\n/).forEach(raw=>{
+    const line=raw.replace(/^\s*(?:\d+\s*[.)]|[-•*])\s*/,'').replace(/[,;\t]+/g,' ').trim();
+    if(!line)return;
+    const w=line.split(/\s+/).map(x=>x.charAt(0).toUpperCase()+x.slice(1));
+    if(w.length<2){bad.push(raw.trim());return;}
+    const last=w[0],first=w.slice(1).join(' '),k=nameKey(last,first);
+    if(seen.has(k)){dup++;return;}
+    seen.add(k);add.push({last:last,first:first});
+  });
+  return {add:add,dup:dup,bad:bad};
+}
 
 /* ---------- state ---------- */
 const S={swimmers:[],results:{},groups:[],att:{},meets:[],meta:{}};
@@ -568,14 +584,14 @@ function viewSwimmers(){
   let h='<div class="toolbar"><input id="q" class="inp grow" type="search" placeholder="Поиск по фамилии или имени" value="'+esc(U.q)+'" data-in="q" autocomplete="off"><button class="btn primary" type="button" data-act="sw-add">Добавить</button></div>';
   if(!S.swimmers.length){
     const fresh=!S.groups.length&&!S.meets.length;
-    h+='<div class="panel empty"><h3>Список пока пуст</h3><p>Добавьте первого спортсмена: фамилия, имя, год рождения и разряд, если он есть.</p><div class="row-actions"><button class="btn primary" type="button" data-act="sw-add">Добавить спортсмена</button>'+(fresh?'<button class="btn" type="button" data-act="demo-load">Показать на примере</button>':'')+'</div></div>';
+    h+='<div class="panel empty"><h3>Список пока пуст</h3><p>Добавьте первого спортсмена: фамилия, имя, год рождения и разряд, если он есть.</p><div class="row-actions"><button class="btn primary" type="button" data-act="sw-add">Добавить спортсмена</button><button class="btn" type="button" data-act="sw-bulk">Добавить списком</button>'+(fresh?'<button class="btn" type="button" data-act="demo-load">Показать на примере</button>':'')+'</div></div>';
     return h;
   }
   if(!list.length)return h+'<p class="note">Никого не найдено.</p>';
   h+='<div class="panel list">'+list.map(s=>{
     const n=(S.results[s.id]||[]).length;
-    return '<button class="item" type="button" data-act="sw-open" data-id="'+s.id+'"><span class="grow"><span class="name">'+esc(s.last)+' '+esc(s.first)+'</span><span class="sub">'+esc(s.year)+' г.р. · '+ym(n)+'</span></span>'+(s.rank?'<span class="pill">'+esc(rankShort(s.rank))+'</span>':'')+'</button>';
-  }).join('')+'</div><p class="note">Всего: '+S.swimmers.length+' '+plural(S.swimmers.length,['спортсмен','спортсмена','спортсменов'])+'</p>';
+    return '<button class="item" type="button" data-act="sw-open" data-id="'+s.id+'"><span class="grow"><span class="name">'+esc(s.last)+' '+esc(s.first)+'</span><span class="sub">'+esc(dot([yrTxt(s),ym(n)]))+'</span></span>'+(s.rank?'<span class="pill">'+esc(rankShort(s.rank))+'</span>':'')+'</button>';
+  }).join('')+'</div><p class="note">Всего: '+S.swimmers.length+' '+plural(S.swimmers.length,['спортсмен','спортсмена','спортсменов'])+'</p><button class="btn" type="button" data-act="sw-bulk">Добавить списком</button>';
   return h;
 }
 function viewSwimmerDetail(){
@@ -593,7 +609,7 @@ function viewSwimmerDetail(){
     return {k:e[0],arr:arr,best:best,stroke:arr[0].stroke,dist:arr[0].dist,pool:arr[0].pool};
   }).sort((a,b)=>evCmp(a,b)||(a.pool-b.pool));
   let h='<button class="back" type="button" data-act="sw-back">← Все спортсмены</button>';
-  h+='<div class="hero"><h2>'+esc(s.last)+' '+esc(s.first)+'</h2><div class="meta"><span>'+esc(s.year)+' г.р.</span>'+(s.rank?'<span class="pill">разряд '+esc(rankShort(s.rank))+'</span>':'<span>без разряда</span>')+'</div>';
+  h+='<div class="hero"><h2>'+esc(s.last)+' '+esc(s.first)+'</h2><div class="meta">'+(s.year?'<span>'+esc(s.year)+' г.р.</span>':'')+(s.rank?'<span class="pill">разряд '+esc(rankShort(s.rank))+'</span>':'<span>без разряда</span>')+'</div>';
   h+='<div class="row-actions"><button class="btn sm" type="button" data-act="sw-edit" data-id="'+s.id+'">Изменить</button><button class="btn sm danger" type="button" data-act="sw-del" data-id="'+s.id+'" data-confirm="Точно удалить?">Удалить</button></div></div>';
   h+='<div class="sec-head"><h3>Лучшие результаты</h3><div class="seg" role="group" aria-label="Бассейн">'+[['all','Все'],[25,'25 м'],[50,'50 м']].map(x=>'<button type="button" data-act="pool-filter" data-v="'+x[0]+'" aria-pressed="'+(pf===x[0])+'">'+x[1]+'</button>').join('')+'</div></div>';
   h+='<button class="btn primary" type="button" data-act="res-add" data-id="'+s.id+'" style="width:100%;margin-bottom:12px">Добавить результат</button>';
@@ -622,7 +638,7 @@ function viewResults(){
   const none=S.swimmers.length-rows.length;
   h+='<div class="sec-head"><h3>'+esc(evName(U.resStroke,U.resDist))+', '+U.resPool+' м</h3></div>';
   if(!rows.length)return h+'<p class="note">Ни у кого пока нет результата на этой дистанции.</p>';
-  h+='<div class="panel list">'+rows.map((x,i)=>'<button class="item" type="button" data-act="res-open-sw" data-id="'+x.s.id+'"><span class="place">'+(i+1)+'</span><span class="grow"><span class="name">'+esc(x.s.last)+' '+esc(x.s.first)+'</span><span class="sub">'+esc(x.s.year)+' г.р.'+(x.s.rank?' · '+esc(rankShort(x.s.rank)):'')+' · '+fmtDate(x.b.date)+'</span></span><span class="time big">'+fmtTime(x.b.ms)+'</span></button>').join('')+'</div>';
+  h+='<div class="panel list">'+rows.map((x,i)=>'<button class="item" type="button" data-act="res-open-sw" data-id="'+x.s.id+'"><span class="place">'+(i+1)+'</span><span class="grow"><span class="name">'+esc(x.s.last)+' '+esc(x.s.first)+'</span><span class="sub">'+esc(dot([yrTxt(x.s),x.s.rank?rankShort(x.s.rank):'',fmtDate(x.b.date)]))+'</span></span><span class="time big">'+fmtTime(x.b.ms)+'</span></button>').join('')+'</div>';
   if(none)h+='<p class="note">Нет результата на этой дистанции: '+none+'</p>';
   return h;
 }
@@ -755,7 +771,7 @@ function viewMeetDetail(){
   if(U.meetView==='swim'){
     h+='<div class="panel list" style="margin-top:12px">'+withSw.sort((a,b)=>cmpName(a.s,b.s)).map(x=>{
       const evs=x.e.events.slice().sort(evCmp);
-      return '<div class="entry"><div class="entry-head"><div class="grow"><span class="name">'+esc(x.s.last)+' '+esc(x.s.first)+'</span><span class="sub">'+esc(x.s.year)+' г.р.'+(x.s.rank?' · разряд '+esc(rankShort(x.s.rank)):'')+'</span></div><div class="row-actions"><button class="btn sm" type="button" data-act="me-events" data-sid="'+x.s.id+'">Дистанции</button><button class="btn sm danger" type="button" data-act="me-rm" data-sid="'+x.s.id+'" data-confirm="Убрать?">Убрать</button></div></div><div class="tags">'
+      return '<div class="entry"><div class="entry-head"><div class="grow"><span class="name">'+esc(x.s.last)+' '+esc(x.s.first)+'</span><span class="sub">'+esc(dot([yrTxt(x.s),x.s.rank?'разряд '+rankShort(x.s.rank):'']))+'</span></div><div class="row-actions"><button class="btn sm" type="button" data-act="me-events" data-sid="'+x.s.id+'">Дистанции</button><button class="btn sm danger" type="button" data-act="me-rm" data-sid="'+x.s.id+'" data-confirm="Убрать?">Убрать</button></div></div><div class="tags">'
         +(evs.length?evs.map(ev=>'<span class="tag">'+esc(evShort(ev.stroke,ev.dist))+(ev.seed?' <i>'+fmtTime(ev.seed)+'</i>':'')+'</span>').join(''):'<span class="warn">дистанции не выбраны</span>')+'</div></div>';
     }).join('')+'</div>';
   }else{
@@ -766,7 +782,7 @@ function viewMeetDetail(){
     h+=evs.map(g=>{
       g.list.sort((a,b)=>(a.seed||1e12)-(b.seed||1e12)||cmpName(a.s,b.s));
       return '<div class="panel" style="margin-top:12px"><div class="evhead"><strong>'+esc(evName(g.stroke,g.dist))+'</strong><span class="inl">'+g.list.length+' '+plural(g.list.length,['участник','участника','участников'])+'</span></div>'
-        +g.list.map((x,i)=>'<div class="ev-line"><span class="idx">'+(i+1)+'</span><span class="grow">'+esc(x.s.last)+' '+esc(x.s.first)+' <span class="inl">'+esc(x.s.year)+'</span></span><span class="time">'+(x.seed?fmtTime(x.seed):'—')+'</span></div>').join('')+'</div>';
+        +g.list.map((x,i)=>'<div class="ev-line"><span class="idx">'+(i+1)+'</span><span class="grow">'+esc(x.s.last)+' '+esc(x.s.first)+(x.s.year?' <span class="inl">'+esc(x.s.year)+'</span>':'')+'</span><span class="time">'+(x.seed?fmtTime(x.seed):'—')+'</span></div>').join('')+'</div>';
     }).join('');
   }
   return h;
@@ -776,7 +792,7 @@ function meetText(m){
   const lines=[m.name+' — '+fmtDate(m.date)+(m.place?', '+m.place:'')+' (бассейн '+m.pool+' м)','Заявка: '+st.n+' '+plural(st.n,['спортсмен','спортсмена','спортсменов'])+', '+st.st+' '+plural(st.st,['старт','старта','стартов']),''];
   m.entries.map(e=>({e:e,s:S.swimmers.find(x=>x.id===e.sid)})).filter(x=>x.s).sort((a,b)=>cmpName(a.s,b.s)).forEach((x,i)=>{
     const evs=x.e.events.slice().sort(evCmp).map(ev=>evShort(ev.stroke,ev.dist)+(ev.seed?' ('+fmtTime(ev.seed)+')':'')).join(', ');
-    lines.push((i+1)+'. '+x.s.last+' '+x.s.first+', '+x.s.year+' г.р., '+(x.s.rank?'разряд '+rankShort(x.s.rank):'без разряда')+' — '+(evs||'дистанции не выбраны'));
+    lines.push((i+1)+'. '+x.s.last+' '+x.s.first+', '+(x.s.year?x.s.year+' г.р., ':'')+(x.s.rank?'разряд '+rankShort(x.s.rank):'без разряда')+' — '+(evs||'дистанции не выбраны'));
   });
   return lines.join('\n');
 }
@@ -786,8 +802,8 @@ function meetCsv(m){
   m.entries.map(e=>({e:e,s:S.swimmers.find(x=>x.id===e.sid)})).filter(x=>x.s).sort((a,b)=>cmpName(a.s,b.s)).forEach(x=>{
     n++;
     const evs=x.e.events.slice().sort(evCmp);
-    if(!evs.length)rows.push([n,x.s.last,x.s.first,x.s.year,x.s.rank?rankShort(x.s.rank):'','','']);
-    evs.forEach(ev=>rows.push([n,x.s.last,x.s.first,x.s.year,x.s.rank?rankShort(x.s.rank):'',evName(ev.stroke,ev.dist),ev.seed?fmtTime(ev.seed):'']));
+    if(!evs.length)rows.push([n,x.s.last,x.s.first,x.s.year||'',x.s.rank?rankShort(x.s.rank):'','','']);
+    evs.forEach(ev=>rows.push([n,x.s.last,x.s.first,x.s.year||'',x.s.rank?rankShort(x.s.rank):'',evName(ev.stroke,ev.dist),ev.seed?fmtTime(ev.seed):'']));
   });
   return toCsv(rows);
 }
@@ -816,16 +832,35 @@ function render(nav){
 function openSwimmerForm(id){
   const s=id?S.swimmers.find(x=>x.id===id):null,Y=new Date().getFullYear();
   const body='<div class="grid2"><label class="field"><span>Фамилия</span><input id="f-last" class="inp" value="'+esc(s?s.last:'')+'" autocomplete="off"></label><label class="field"><span>Имя</span><input id="f-first" class="inp" value="'+esc(s?s.first:'')+'" autocomplete="off"></label></div>'
-    +'<div class="grid2"><label class="field"><span>Год рождения</span><input id="f-year" class="inp" inputmode="numeric" maxlength="4" placeholder="'+(Y-12)+'" value="'+(s?esc(s.year):'')+'"></label><label class="field"><span>Разряд</span><select id="f-rank" class="inp">'+RANKS.map(r=>'<option value="'+r[0]+'"'+(s&&s.rank===r[0]?' selected':'')+'>'+r[1]+'</option>').join('')+'</select></label></div><p class="err" id="f-err" hidden></p>';
+    +'<div class="grid2"><label class="field"><span>Год рождения (можно пропустить)</span><input id="f-year" class="inp" inputmode="numeric" maxlength="4" placeholder="'+(Y-12)+'" value="'+(s&&s.year?esc(s.year):'')+'"></label><label class="field"><span>Разряд</span><select id="f-rank" class="inp">'+RANKS.map(r=>'<option value="'+r[0]+'"'+(s&&s.rank===r[0]?' selected':'')+'>'+r[1]+'</option>').join('')+'</select></label></div><p class="err" id="f-err" hidden></p>';
   const save=()=>{
-    const last=$('#f-last').value.trim(),first=$('#f-first').value.trim(),year=parseInt($('#f-year').value,10),rank=$('#f-rank').value;
+    const last=$('#f-last').value.trim(),first=$('#f-first').value.trim(),yRaw=$('#f-year').value.trim(),year=yRaw?parseInt(yRaw,10):null,rank=$('#f-rank').value;
     if(!last||!first){setErr('Укажите фамилию и имя.');return;}
-    if(!(year>=1940&&year<=Y)){setErr('Укажите год рождения, например '+(Y-12)+'.');return;}
+    if(yRaw&&!(year>=1940&&year<=Y)){setErr('Год рождения указан неверно, например '+(Y-12)+'. Поле можно оставить пустым.');return;}
     if(s){s.last=last;s.first=first;s.year=year;s.rank=rank;}
     else{const n={id:uid(),last:last,first:first,year:year,rank:rank};S.swimmers.push(n);}
     mark('swimmers');closeModal();render();toast(s?'Изменения сохранены':'Спортсмен добавлен');
   };
   openModal(s?'Спортсмен':'Новый спортсмен',body,'<button class="btn" type="button" data-m="close">Отмена</button><button class="btn primary" type="button" data-m="save">Сохранить</button>',{save:save,enter:save});
+}
+function openBulkForm(){
+  const have=()=>S.swimmers.map(x=>nameKey(x.last,x.first));
+  const body='<p class="note" style="margin:0">По одному человеку в строке: сначала фамилия, потом имя. Год рождения не нужен. Номера в начале строк и лишние пробелы игнорируются.</p>'
+    +'<textarea id="f-bulk" class="inp ta" placeholder="Иванов Пётр&#10;Смирнова Анна" style="font-family:inherit;font-size:15px" autocapitalize="words" spellcheck="false"></textarea><p class="note" id="f-bulk-info" style="margin:0">Вставьте список.</p><p class="err" id="f-err" hidden></p>';
+  const info=()=>{
+    const r=parseNames($('#f-bulk').value,have());
+    $('#f-bulk-info').textContent=r.add.length?'Будет добавлено: '+r.add.length+(r.dup?'. Уже есть в списке: '+r.dup:'')+(r.bad.length?'. Не хватает имени или фамилии: '+r.bad.length:''):($('#f-bulk').value.trim()?'Не нашёл ни одного нового человека.':'Вставьте список.');
+  };
+  const save=()=>{
+    const r=parseNames($('#f-bulk').value,have());
+    if(!r.add.length){setErr('Нечего добавлять. Нужны строки вида «Иванов Пётр».');return;}
+    r.add.forEach(p=>S.swimmers.push({id:uid(),last:p.last,first:p.first,year:null,rank:''}));
+    mark('swimmers');closeModal();render();
+    toast('Добавлено: '+r.add.length+(r.dup?'. Уже были: '+r.dup:'')+(r.bad.length?'. Пропущено строк: '+r.bad.length:''));
+  };
+  openModal('Добавить списком',body,'<button class="btn" type="button" data-m="close">Отмена</button><button class="btn primary" type="button" data-m="save">Добавить</button>',{save:save},ov=>{
+    $('#f-bulk',ov).addEventListener('input',info);$('#f-bulk',ov).focus();
+  });
 }
 function openResultForm(sid){
   const s=S.swimmers.find(x=>x.id===sid);if(!s)return;
@@ -894,7 +929,7 @@ function openAddSwimmers(){
   const cand=S.swimmers.filter(s=>!have.has(s.id)).sort(cmpName);
   if(!cand.length){toast('Все спортсмены уже в списке');return;}
   const body='<input id="f-find" class="inp" type="search" placeholder="Поиск по фамилии" data-noenter autocomplete="off"><div id="f-pick">'
-    +cand.map(s=>'<label class="pick" data-n="'+esc((s.last+' '+s.first).toLowerCase())+'"><input type="checkbox" value="'+s.id+'"><span class="grow"><span class="name">'+esc(s.last)+' '+esc(s.first)+'</span><span class="sub">'+esc(s.year)+' г.р.'+(s.rank?' · '+esc(rankShort(s.rank)):'')+'</span></span></label>').join('')+'</div>';
+    +cand.map(s=>'<label class="pick" data-n="'+esc((s.last+' '+s.first).toLowerCase())+'"><input type="checkbox" value="'+s.id+'"><span class="grow"><span class="name">'+esc(s.last)+' '+esc(s.first)+'</span><span class="sub">'+esc(dot([yrTxt(s),s.rank?rankShort(s.rank):'']))+'</span></span></label>').join('')+'</div>';
   const count=()=>document.querySelectorAll('#f-pick input:checked').length;
   const add=()=>{
     const ids=[...document.querySelectorAll('#f-pick input:checked')].map(i=>i.value);
@@ -975,6 +1010,7 @@ const A={
   'sw-open':el=>{U.swId=el.dataset.id;render(true);},
   'sw-back':()=>{U.swId=null;render(true);},
   'sw-add':()=>openSwimmerForm(),
+  'sw-bulk':()=>openBulkForm(),
   'sw-edit':el=>openSwimmerForm(el.dataset.id),
   'sw-del':el=>{deleteSwimmer(el.dataset.id);U.swId=null;render(true);toast('Спортсмен удалён');},
   'pool-filter':el=>{U.poolFilter=el.dataset.v==='all'?'all':+el.dataset.v;render();},
