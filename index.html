@@ -185,6 +185,23 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);flex:none
 
 /* standards */
 .stdline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px}
+.swtime{font:600 clamp(48px,17vw,84px)/1 var(--f-mono);text-align:center;letter-spacing:-.02em;padding:18px 0 14px;font-variant-numeric:tabular-nums}
+.swtime.stop{color:var(--ok)}
+.lanes{display:grid;gap:14px}
+.lane{appearance:none;width:100%;text-align:left;border:2px solid var(--line);background:var(--surface);color:var(--fg);border-radius:14px;min-height:112px;padding:14px 16px;display:flex;align-items:center;gap:14px;font:inherit;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.lane.live{border-color:var(--accent);cursor:pointer}
+.lane.live:active{background:var(--accent-soft)}
+.lane.fixed{border-color:var(--ok);background:var(--ok-bg)}
+.lane .grow{min-width:0}
+.lane .lt{font:600 30px/1 var(--f-mono);margin-left:auto;white-space:nowrap;flex:none}
+.lane.live .lt{color:var(--accent);font-size:26px;letter-spacing:.04em}
+.ln{flex:none;width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:inline-grid;place-items:center;font-weight:700;font-size:15px}
+.ln.off{background:none;border:2px solid var(--line)}
+.swpick{display:flex;flex-direction:column;gap:8px;margin:4px 0 14px;min-height:34px;justify-content:center}
+.swsel{display:flex;align-items:center;gap:10px;font-weight:600}
+.swgo{min-height:84px;font-size:24px;width:100%;border-radius:14px;font-weight:700;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.swact{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+.swinfo{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
 .stdinfo{margin:12px 2px 8px}
 .stdinfo summary{cursor:pointer;color:var(--muted);font-size:13px;min-height:32px;display:flex;align-items:center}
 .stdwrap{position:sticky;top:0;z-index:4;overflow:auto;margin-top:4px;max-height:calc(100vh - 150px);max-height:calc(100dvh - 150px);-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
@@ -216,9 +233,9 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);flex:none
 .pick{display:flex;align-items:center;gap:12px;padding:8px 2px;border-bottom:1px solid var(--line);min-height:48px;cursor:pointer}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;max-width:calc(100% - 32px);font-size:14px;box-shadow:var(--shadow)}
 .tabbar{flex:none;z-index:20;background:var(--surface);border-top:1px solid var(--line);
-  padding:0 max(16px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(16px,env(safe-area-inset-left,0px))}
-.tabs{max-width:860px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
-.tab{appearance:none;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 9px;min-height:58px;color:var(--muted);font-size:11.5px;font-weight:500;cursor:pointer;white-space:nowrap;min-width:0}
+  padding:0 max(2px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(2px,env(safe-area-inset-left,0px))}
+.tabs{max-width:860px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tab{appearance:none;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 9px;min-height:58px;color:var(--muted);font-size:10.5px;font-weight:500;cursor:pointer;white-space:nowrap;min-width:0;letter-spacing:-.01em}
 .tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tab[aria-current="page"]{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
 @media (max-width:420px){.rep-row{grid-template-columns:1.2fr repeat(3,.9fr);padding:10px 12px;font-size:13px}.tiles b{font-size:28px}}
@@ -247,7 +264,8 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);flex:none
 <nav class="tabbar" aria-label="Разделы">
   <div class="tabs">
     <button class="tab" type="button" data-tab="sw"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-6 7-6s7 2.1 7 6"/></svg>Спортсмены</button>
-    <button class="tab" type="button" data-tab="res"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13.5" r="7"/><path d="M12 13.5V9.5M9.5 3h5M12 3v3.5M18.5 6.5l1.2-1.2"/></svg>Результаты</button>
+    <button class="tab" type="button" data-tab="res"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-8M12 20V5M19 20v-5M3.5 20h17"/></svg>Результаты</button>
+    <button class="tab" type="button" data-tab="stw"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13.5" r="7"/><path d="M12 13.5V9.5M9.5 3h5M12 3v3.5M18.5 6.5l1.2-1.2"/></svg>Секундомер</button>
     <button class="tab" type="button" data-tab="att"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 4.5h6v2.5H9zM8.5 13.5l2.5 2.5 4.5-5"/></svg>Посещаемость</button>
     <button class="tab" type="button" data-tab="meet"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4M6 5h11l-2.5 4 2.5 4H6"/></svg>Соревнования</button>
   </div>
@@ -781,6 +799,135 @@ function viewResults(){
   return h;
 }
 
+/* ---------- секундомер ---------- */
+const SW={pool:25,stroke:'free',dist:50,ids:[],q:'',phase:'setup',t0:0,times:[],saved:[]};
+function swLoad(){
+  try{
+    const o=JSON.parse(localStorage.getItem(LSP+'stopwatch')||'null');
+    if(o&&typeof o==='object')['pool','stroke','dist','ids','phase','t0','times','saved'].forEach(k=>{if(o[k]!==undefined)SW[k]=o[k];});
+  }catch(e){}
+}
+function swSave(){lsSet('stopwatch',{pool:SW.pool,stroke:SW.stroke,dist:SW.dist,ids:SW.ids,phase:SW.phase,t0:SW.t0,times:SW.times,saved:SW.saved});}
+function swEnsure(){
+  if(!(SW.stroke in SIDX))SW.stroke='free';
+  if(SW.pool!==25&&SW.pool!==50)SW.pool=25;
+  if(!Array.isArray(SW.ids))SW.ids=[];
+  const n=SW.ids.length;
+  SW.ids=SW.ids.filter(id=>S.swimmers.some(s=>s.id===id)).slice(0,2);
+  if(SW.phase!=='setup'){
+    const bad=SW.ids.length!==n||!SW.ids.length||!Array.isArray(SW.times)||SW.times.length!==SW.ids.length||(SW.phase==='run'&&Date.now()-SW.t0>6*3600e3);
+    if(bad)SW.phase='setup';
+  }
+  if(SW.phase==='setup'){SW.times=[];SW.saved=[];}
+  if(!Array.isArray(SW.saved)||SW.saved.length!==SW.ids.length)SW.saved=SW.ids.map(()=>false);
+}
+const swSw=id=>S.swimmers.find(s=>s.id===id);
+function fmtClock(ms){const c=Math.floor(Math.max(0,ms)/10),m=Math.floor(c/6000),s=Math.floor(c%6000/100);return pad(m)+':'+pad(s)+','+pad(c%100);}
+let swRaf=0,swLock=null;
+async function swWake(on){
+  try{
+    if(on){if(navigator.wakeLock&&!swLock){swLock=await navigator.wakeLock.request('screen');swLock.addEventListener('release',()=>{swLock=null;});}}
+    else if(swLock){const l=swLock;swLock=null;await l.release();}
+  }catch(e){swLock=null;}
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&SW.phase==='run'&&U.tab==='stw')swWake(true);});
+function swTick(){
+  cancelAnimationFrame(swRaf);
+  const f=()=>{
+    const el=document.getElementById('sw-main');
+    if(SW.phase!=='run'||U.tab!=='stw'||!el){swRaf=0;return;}
+    el.textContent=fmtClock(Date.now()-SW.t0);
+    swRaf=requestAnimationFrame(f);
+  };
+  f();
+}
+function swStart(){
+  if(SW.phase!=='setup'||!SW.ids.length)return;
+  const t=Date.now();
+  SW.phase='run';SW.t0=t;SW.times=SW.ids.map(()=>null);SW.saved=SW.ids.map(()=>false);
+  swSave();swWake(true);render(true);
+}
+function swFix(i){
+  if(SW.phase!=='run'||SW.times[i]!=null)return;
+  const t=Math.floor((Date.now()-SW.t0)/10)*10;
+  SW.times[i]=t;
+  if(SW.times.every(x=>x!=null)){SW.phase='done';swWake(false);}
+  swSave();render();
+}
+function swUndo(i){
+  if(SW.times[i]==null||SW.saved[i])return;
+  SW.times[i]=null;
+  if(SW.phase==='done'){SW.phase='run';swWake(true);}
+  swSave();render();
+}
+function swSaveRes(i){
+  if(SW.saved[i]||SW.times[i]==null)return false;
+  const id=SW.ids[i];
+  addResult(id,{stroke:SW.stroke,dist:SW.dist,pool:SW.pool,ms:SW.times[i],date:todayStr()});
+  const l=S.results[id];SW.saved[i]=l[l.length-1].id;swSave();return true;
+}
+function swFilters(){
+  const st=STROKES[SIDX[SW.stroke]];
+  if(st.d.indexOf(SW.dist)<0)SW.dist=st.d.indexOf(100)>-1?100:st.d[0];
+  return '<div class="filters"><label class="field"><span>Стиль</span><select id="sw-stroke" class="inp" data-ch="sw-stroke">'+STROKES.map(x=>'<option value="'+x.k+'"'+(x.k===SW.stroke?' selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select></label>'
+    +'<label class="field"><span>Дистанция</span><select id="sw-dist" class="inp" data-ch="sw-dist">'+st.d.map(d=>'<option value="'+d+'"'+(d===SW.dist?' selected':'')+'>'+d+' м</option>').join('')+'</select></label>'
+    +'<div class="field full"><span>Бассейн</span><div class="seg wide" role="group" aria-label="Бассейн">'+[25,50].map(p=>'<button type="button" data-act="sw2-pool" data-v="'+p+'" aria-pressed="'+(SW.pool===p)+'">'+p+' м</button>').join('')+'</div></div></div>';
+}
+function viewStopwatch(){
+  swEnsure();
+  return SW.phase==='setup'?swSetup():swRun();
+}
+function swSetup(){
+  let h='<div class="sec-head"><h3>Секундомер</h3></div>'+swFilters();
+  if(!S.swimmers.length)return h+'<p class="note">Сначала добавьте спортсменов на вкладке «Спортсмены».</p>';
+  const names=SW.ids.map((id,i)=>{const s=swSw(id);return '<span class="swsel"><span class="ln">'+(i+1)+'</span>'+esc(s.last)+' '+esc(s.first)+'</span>';}).join('');
+  h+='<div class="swpick">'+(names||'<span class="sub">Выберите одного или двух спортсменов из списка ниже</span>')+'</div>';
+  h+='<button class="btn primary swgo" type="button" data-sw="start"'+(SW.ids.length?'':' disabled')+'>Старт</button>';
+  const q=SW.q.trim().toLowerCase();
+  const list=S.swimmers.slice().sort(cmpName).filter(s=>!q||(s.last+' '+s.first).toLowerCase().indexOf(q)>-1);
+  h+='<div class="sec-head"><h3>Кто плывёт</h3><span class="sub">выбрано '+SW.ids.length+' из 2</span></div>';
+  h+='<input id="swq" class="inp" type="search" placeholder="Поиск по фамилии или имени" value="'+esc(SW.q)+'" data-in="swq" autocomplete="off">';
+  if(!list.length)return h+'<p class="note">Никого не найдено.</p>';
+  h+='<div class="panel list" style="margin-top:10px">'+list.map(s=>{
+    const k=SW.ids.indexOf(s.id),b=bestFor(s.id,SW.stroke,SW.dist,SW.pool);
+    return '<button class="item" type="button" data-act="sw2-pick" data-id="'+s.id+'" aria-pressed="'+(k>-1)+'"><span class="ln'+(k>-1?'':' off')+'">'+(k>-1?k+1:'')+'</span><span class="grow"><span class="name">'+esc(s.last)+' '+esc(s.first)+'</span><span class="sub">'+esc(b?'лучшее на этой дистанции: '+fmtTime(b.ms):'на этой дистанции результатов нет')+'</span></span></button>';
+  }).join('')+'</div>';
+  return h;
+}
+function swRun(){
+  const run=SW.phase==='run';
+  const fixed=SW.times.filter(x=>x!=null);
+  let h='<div class="sec-head"><h3>'+esc(evName(SW.stroke,SW.dist))+', бассейн '+SW.pool+' м</h3></div>';
+  h+='<div class="swtime'+(run?'':' stop')+'" id="sw-main">'+fmtClock(run?Date.now()-SW.t0:Math.max.apply(null,fixed))+'</div>';
+  h+='<div class="lanes">'+SW.ids.map((id,i)=>{
+    const s=swSw(id),t=SW.times[i],nm='<span class="name">'+esc(s.last)+' '+esc(s.first)+'</span>';
+    if(t==null)return '<button class="lane live" type="button" data-sw="fix" data-i="'+i+'"><span class="ln">'+(i+1)+'</span><span class="grow">'+nm+'</span><span class="lt">СТОП</span></button>';
+    let c='<div class="lane fixed"><span class="ln">'+(i+1)+'</span><span class="grow">'+nm+(run?'<span class="swact"><button class="btn sm" type="button" data-act="sw2-undo" data-i="'+i+'">Отменить остановку</button></span>':'')+'</span><span class="lt">'+fmtTime(t)+'</span></div>';
+    if(!run)c+=swResultBlock(i);
+    return '<div>'+c+'</div>';
+  }).join('')+'</div>';
+  if(run)h+='<div class="swact" style="margin-top:20px"><button class="btn danger" type="button" data-act="sw2-reset" data-confirm="Точно сбросить?">Сбросить секундомер</button></div>';
+  else{
+    const unsaved=SW.ids.filter((id,i)=>!SW.saved[i]).length;
+    h+='<div class="swact" style="margin-top:20px">'+(unsaved>1?'<button class="btn primary" type="button" data-act="sw2-saveall">Сохранить всех</button>':'')
+      +'<button class="btn" type="button" data-act="sw2-new"'+(unsaved?' data-confirm="Не сохранено. Точно?"':'')+'>Новый заплыв</button></div>';
+  }
+  return h;
+}
+function swResultBlock(i){
+  const id=SW.ids[i],s=swSw(id),ms=SW.times[i];
+  const list=(S.results[id]||[]).filter(r=>r.id!==SW.saved[i]);
+  const b=bestOf(list,SW.stroke,SW.dist,SW.pool);
+  let info;
+  if(!b)info='<span class="pill warn">первый результат на дистанции</span>';
+  else if(ms<b.ms)info='<span class="pill warn">личный рекорд '+fmtDelta(ms-b.ms)+'</span><span class="inl">было '+fmtTime(b.ms)+'</span>';
+  else info='<span class="inl">лучшее '+fmtTime(b.ms)+', сейчас '+fmtDelta(ms-b.ms)+'</span>';
+  let h='<div class="swinfo">'+info+'</div>'+stdLine(s,SW.pool,SW.stroke,SW.dist,ms);
+  h+='<div class="swact">'+(SW.saved[i]?'<span class="pill ok">Сохранено в результатах</span>':'<button class="btn primary" type="button" data-act="sw2-save" data-i="'+i+'">Сохранить результат</button><button class="btn" type="button" data-act="sw2-undo" data-i="'+i+'">Отменить остановку</button>')+'</div>';
+  return h;
+}
+const SWH={start:()=>swStart(),fix:el=>swFix(+el.dataset.i)};
+
 /* ---------- views: attendance ---------- */
 function viewAttendance(){
   const seg='<div class="seg wide" role="group" style="margin-top:16px">'+[['log','Журнал'],['groups','Группы'],['rep','Отчёт']].map(x=>'<button type="button" data-act="att-view" data-v="'+x[0]+'" aria-pressed="'+(U.attView===x[0])+'">'+x[1]+'</button>').join('')+'</div>';
@@ -964,10 +1111,13 @@ function render(nav){
   const sc=document.getElementById('scroll'),y=sc?sc.scrollTop:0;
   let html;
   if(U.loading)html='<p class="note">Загрузка данных…</p>';
-  else html=banner()+({sw:viewSwimmers,res:viewResults,att:viewAttendance,meet:viewMeets}[U.tab])();
+  else html=banner()+({sw:viewSwimmers,res:viewResults,stw:viewStopwatch,att:viewAttendance,meet:viewMeets}[U.tab])();
   view.innerHTML=html;
   document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.tab===U.tab)t.setAttribute('aria-current','page');else t.removeAttribute('aria-current');});
+  const hd=document.querySelector('header.top');
+  if(hd)hd.hidden=U.tab==='stw'&&!U.loading&&SW.phase!=='setup';
   fitStd();
+  if(U.tab==='stw'&&!U.loading&&SW.phase==='run')swTick();
   if(sc)sc.scrollTop=nav?0:y;
   if(aid){
     const el=document.getElementById(aid);
@@ -1171,6 +1321,19 @@ function openData(){
 
 /* ---------- actions ---------- */
 const A={
+  'sw2-pool':el=>{SW.pool=+el.dataset.v;swSave();render();},
+  'sw2-pick':el=>{
+    const id=el.dataset.id,k=SW.ids.indexOf(id);
+    if(k>-1)SW.ids.splice(k,1);
+    else if(SW.ids.length>=2){toast('Можно выбрать не больше двух спортсменов');return;}
+    else SW.ids.push(id);
+    swSave();render();
+  },
+  'sw2-undo':el=>swUndo(+el.dataset.i),
+  'sw2-save':el=>{if(swSaveRes(+el.dataset.i)){render();toast('Результат сохранён');}},
+  'sw2-saveall':()=>{let n=0;SW.ids.forEach((id,i)=>{if(swSaveRes(i))n++;});render();toast(n?'Сохранено результатов: '+n:'Ничего нового');},
+  'sw2-new':()=>{SW.phase='setup';SW.times=[];SW.saved=[];swSave();render(true);},
+  'sw2-reset':()=>{SW.phase='setup';SW.times=[];SW.saved=[];swWake(false);swSave();render(true);},
   'sw-open':el=>{U.swId=el.dataset.id;render(true);},
   'sw-back':()=>{U.swId=null;render(true);},
   'sw-add':()=>openSwimmerForm(),
@@ -1240,8 +1403,10 @@ const A={
   'me-copy':()=>copyText(meetText(curMeet()),'Список на соревнование'),
   'me-csv':()=>{const m=curMeet();saveFile('zayavka-'+m.date+'.csv',meetCsv(m));}
 };
-const IN={q:t=>{U.q=t.value;render();},cnt:t=>{const d=getDraft(t.dataset.gid,U.attDate);d.count=Math.max(0,Math.min(500,parseInt(t.value,10)||0));}};
+const IN={swq:t=>{SW.q=t.value;render();},q:t=>{U.q=t.value;render();},cnt:t=>{const d=getDraft(t.dataset.gid,U.attDate);d.count=Math.max(0,Math.min(500,parseInt(t.value,10)||0));}};
 const CH={
+  'sw-stroke':t=>{SW.stroke=t.value;swSave();render();},
+  'sw-dist':t=>{SW.dist=+t.value;swSave();render();},
   'r-stroke':t=>{U.resStroke=t.value;render();},
   'r-dist':t=>{U.resDist=+t.value;render();},
   'att-date':t=>{if(t.value){U.attDate=t.value;render();}},
@@ -1255,6 +1420,12 @@ view.addEventListener('click',e=>{
   if(el.dataset.confirm&&!el.dataset.armed){arm(el);return;}
   const fn=A[el.dataset.act];if(fn)fn(el,e);
 });
+view.addEventListener('pointerdown',e=>{
+  const el=e.target.closest('[data-sw]');if(!el||!view.contains(el)||el.disabled)return;
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  e.preventDefault();SWH[el.dataset.sw](el);
+});
+view.addEventListener('click',e=>{const el=e.target.closest('[data-sw]');if(el&&!el.disabled&&e.detail===0)SWH[el.dataset.sw](el);});
 view.addEventListener('input',e=>{const k=e.target.dataset.in;if(k&&IN[k])IN[k](e.target);});
 view.addEventListener('change',e=>{const k=e.target.dataset.ch;if(k&&CH[k])CH[k](e.target);});
 document.querySelector('.tabbar').addEventListener('click',e=>{
@@ -1266,6 +1437,7 @@ $('#btn-data').addEventListener('click',openData);
 
 /* ---------- start ---------- */
 $('#today').textContent=new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+swLoad();
 render(true);
 initStore().then(()=>{U.loading=false;setStatus('idle');render(true);}).catch(()=>{U.loading=false;hydrate({});setStatus('idle');render(true);});
 })();
