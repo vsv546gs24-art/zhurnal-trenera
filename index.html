@@ -941,7 +941,7 @@ function meetCsv(m){
     n++;
     const evs=x.e.events.slice().sort(evCmp);
     if(!evs.length)rows.push([n,x.s.last,x.s.first,x.s.year||'',x.s.rank?rankShort(x.s.rank):'','','']);
-    evs.forEach(ev=>rows.push([n,x.s.last,x.s.first,x.s.year||'',x.s.rank?rankShort(x.s.rank):'',evName(ev.stroke,ev.dist),ev.seed?fmtTime(ev.seed):'']));
+    evs.forEach((ev,j)=>rows.push((j?['','','','','']:[n,x.s.last,x.s.first,x.s.year||'',x.s.rank?rankShort(x.s.rank):'']).concat([evName(ev.stroke,ev.dist),ev.seed?fmtTime(ev.seed):''])));
   });
   return toCsv(rows);
 }
