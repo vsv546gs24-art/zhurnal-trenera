@@ -185,14 +185,19 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);flex:none
 
 /* standards */
 .stdline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px}
-.stdwrap{overflow-x:auto;margin-top:4px}
+.stdinfo{margin:12px 2px 8px}
+.stdinfo summary{cursor:pointer;color:var(--muted);font-size:13px;min-height:32px;display:flex;align-items:center}
+.stdwrap{position:sticky;top:0;z-index:4;overflow:auto;margin-top:4px;max-height:calc(100vh - 150px);max-height:calc(100dvh - 150px);-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .stdtbl{border-collapse:separate;border-spacing:0;width:100%;min-width:640px;font-size:13px}
 .stdtbl th,.stdtbl td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums}
 .stdtbl td{font-family:var(--f-mono);font-size:12.5px}
-.stdtbl thead th{position:sticky;top:0;background:var(--surface-2);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.stdtbl thead th{position:sticky;top:0;z-index:2;background:var(--surface-2);box-shadow:0 1px 0 var(--line);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:500}
 .stdtbl th[scope=row],.stdtbl thead th:first-child{position:sticky;left:0;text-align:left;background:var(--surface);font-weight:600;z-index:1}
-.stdtbl thead th:first-child{background:var(--surface-2)}
-.stdtbl tr.grp th{text-align:left;background:var(--surface-2);font:500 13px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);position:sticky;left:0}
+.stdtbl thead th:first-child{background:var(--surface-2);z-index:3}
+.stdtbl th[scope=row]{box-shadow:1px 0 0 var(--line)}
+.stdtbl th[scope=row] .sn{display:block;font:500 10px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.stdtbl tr.grp th{text-align:left;background:var(--surface-2);font:500 13px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.stdtbl tr.grp th span{position:sticky;left:0;display:inline-block;padding:0 10px;margin:0 -10px 0 0}
 /* modal, toast, tab bar */
 .overlay{position:fixed;inset:0;z-index:50;background:rgba(5,20,30,.55);display:flex;align-items:flex-end;justify-content:center;padding:0 env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px)}
 .sheet{background:var(--surface);color:var(--fg);width:100%;max-width:560px;max-height:92%;border-radius:16px 16px 0 0;display:flex;flex-direction:column;box-shadow:var(--shadow);min-height:0}
@@ -742,19 +747,20 @@ function viewSwimmerDetail(){
 }
 
 /* ---------- views: results ranking ---------- */
+const SNAME={free:'Вольный',back:'Спина',breast:'Брасс',fly:'Баттерфляй',im:'Компл.'};
 function viewStandards(){
   const pool=U.resPool,sex=U.stdSex,tbl=STD[pool];
   let h='<div class="filters"><div class="field full"><span>Пол</span><div class="seg wide" role="group" aria-label="Пол">'+[['m','Мужчины, юноши'],['f','Женщины, девушки']].map(x=>'<button type="button" data-act="std-sex" data-v="'+x[0]+'" aria-pressed="'+(sex===x[0])+'">'+x[1]+'</button>').join('')+'</div></div>'
     +'<div class="field full"><span>Бассейн</span><div class="seg wide" role="group" aria-label="Бассейн">'+[25,50].map(p=>'<button type="button" data-act="res-pool" data-v="'+p+'" aria-pressed="'+(pool===p)+'">'+p+' м</button>').join('')+'</div></div></div>';
+  h+='<details class="stdinfo"><summary>Источник и пояснения</summary><p class="note">ЕВСК 2026–2029, плавание: приложение № 19 к приказу Минспорта России от 10.03.2026 № 201. Норматив выполнен, если время равно нормативу или лучше. Для присвоения разряда важны также статус соревнований, возраст и электронный хронометраж. В эстафетах норматив засчитывается только за первый этап и равен личному. Значения переписаны из текста приказа, для официальных документов сверяйте с оригиналом.</p></details>';
   h+='<div class="panel stdwrap"><table class="stdtbl"><thead><tr><th scope="col">Дистанция</th>'+STD_SHORT.map(x=>'<th scope="col">'+x+'</th>').join('')+'</tr></thead><tbody>';
   STROKES.forEach(st=>{
     const evs=st.d.filter(d=>tbl[st.k+'-'+d]);
     if(!evs.length)return;
-    h+='<tr class="grp"><th colspan="10">'+esc(st.name)+'</th></tr>';
-    evs.forEach(d=>{h+='<tr><th scope="row">'+d+' м</th>'+tbl[st.k+'-'+d][sex].map(v=>'<td>'+fmtTime(v)+'</td>').join('')+'</tr>';});
+    h+='<tr class="grp"><th colspan="10"><span>'+esc(st.name)+'</span></th></tr>';
+    evs.forEach(d=>{h+='<tr><th scope="row"><span class="sn">'+(SNAME[st.k]||st.short)+'</span>'+d+' м</th>'+tbl[st.k+'-'+d][sex].map(v=>'<td>'+fmtTime(v)+'</td>').join('')+'</tr>';});
   });
   h+='</tbody></table></div>';
-  h+='<p class="note">ЕВСК 2026–2029, плавание: приложение № 19 к приказу Минспорта России от 10.03.2026 № 201. Норматив выполнен, если время равно нормативу или лучше. Для присвоения разряда важны также статус соревнований, возраст и электронный хронометраж. В эстафетах норматив засчитывается только за первый этап и равен личному. Значения переписаны из текста приказа, для официальных документов сверяйте с оригиналом.</p>';
   return h;
 }
 function viewResults(){
@@ -942,6 +948,14 @@ function meetCsv(m){
 
 /* ---------- render ---------- */
 const view=$('#view');
+function fitStd(){
+  const w=document.querySelector('.stdwrap'),sc=document.getElementById('scroll');
+  if(!w||!sc)return;
+  const pb=parseFloat(getComputedStyle(sc).paddingBottom)||0;
+  w.style.maxHeight=Math.max(240,sc.clientHeight-2)+'px';
+  w.style.marginBottom=(-pb)+'px';
+}
+window.addEventListener('resize',fitStd);
 function render(nav){
   const act=document.activeElement;
   const aid=act&&act!==document.body?act.id:'';
@@ -953,6 +967,7 @@ function render(nav){
   else html=banner()+({sw:viewSwimmers,res:viewResults,att:viewAttendance,meet:viewMeets}[U.tab])();
   view.innerHTML=html;
   document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.tab===U.tab)t.setAttribute('aria-current','page');else t.removeAttribute('aria-current');});
+  fitStd();
   if(sc)sc.scrollTop=nav?0:y;
   if(aid){
     const el=document.getElementById(aid);
